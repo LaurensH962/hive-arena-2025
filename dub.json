@@ -1,0 +1,12 @@
+{
+	"authors": [
+		"Noé Falzon"
+	],
+	"copyright": "Copyright © 2025, Noé Falzon",
+	"dependencies": {
+		"vibe-d": "~>0.10.2"
+	},
+	"description": "AI agent writing competition for the Hive Helsinki school",
+	"license": "proprietary",
+	"name": "hive-arena-2025"
+}
