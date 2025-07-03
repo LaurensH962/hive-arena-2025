@@ -113,9 +113,11 @@ Tuple!(Coords, Hex)[] sortByCoords(Hex[Coords] m)
 		.array;
 }
 
-void printMap(Hex[Coords] m)
+string mapToString(Hex[Coords] m)
 {
-	import std.stdio;
+	import std.format;
+
+	auto res = "";
 
 	auto top = m.keys.map!"a.row".minElement;
 	auto bottom = m.keys.map!"a.row".maxElement;
@@ -124,7 +126,7 @@ void printMap(Hex[Coords] m)
 
 	foreach (row; top .. bottom + 1)
 	{
-		if (row % 2 == 1) write("  ");
+		if (row % 2 == 1) res ~= "  ";
 		foreach (col; left .. right + 1)
 		{
 			if (!Coords.valid(row, col)) continue;
@@ -138,8 +140,10 @@ void printMap(Hex[Coords] m)
 				c1 = hex.kind.kindToChar;
 				c2 = hex.player != 0 ? hex.player.to!string[0] : ' ';
 			}
-			writef("%c%c  ", c1, c2);
+			res ~= format("%c%c  ", c1, c2);
 		}
-		write('\n');
+		res ~= '\n';
 	}
+
+	return res;
 }
