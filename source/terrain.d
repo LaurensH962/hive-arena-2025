@@ -92,6 +92,11 @@ private const charToTerrain = [
 	'R': Terrain.ROCK
 ];
 
+private const charToSpawn = [
+	'H': Spawn.Kind.HIVE,
+	'B': Spawn.Kind.BEE
+];
+
 char terrainToChar(Terrain kind)
 {
 	foreach(k, v; charToTerrain)
@@ -119,11 +124,11 @@ Tuple!(Map, Spawn[]) loadMap(string path)
 		{
 			map[coords] = charToTerrain[c];
 		}
-		else if (c == 'H' || c == 'B')
+		else if (c in charToSpawn)
 		{
 			auto player = line[tcol + 1].to!string.to!ubyte;
 
-			spawns ~= Spawn(c == 'H' ? Spawn.Kind.HIVE : Spawn.Kind.BEE, player, coords);
+			spawns ~= Spawn(charToSpawn[c], player, coords);
 			map[coords] = Terrain.EMPTY;
 		}
 	}
