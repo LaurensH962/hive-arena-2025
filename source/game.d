@@ -126,11 +126,10 @@ class GameState
 	void applyOrders(Order[] orders)
 	{
 		foreach(order; orders)
-		{
 			order.validate(this);
 
+		foreach(order; orders)
 			if (order.status == Order.Status.PENDING)
 				order.apply(this);
-		}
 	}
 }
