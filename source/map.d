@@ -3,21 +3,20 @@ import std.array;
 import std.conv;
 import std.typecons;
 
-enum HexKind
+enum Terrain
 {
 	EMPTY,
 	ROCK,
-	FIELD,
-	HIVE,
-	BEE,
-	WALL
+	FIELD
 }
 
-struct Hex
+struct Spawn
 {
-	HexKind kind;
+	enum Kind {HIVE, BEE};
+
+	Kind kind;
 	ubyte player;
-	ubyte hp;
+	Coords coords;
 }
 
 // Doubled coordinates system (https://www.redblobgames.com/grids/hexagons/)
@@ -74,90 +73,96 @@ struct Coords
 	{
 		return directionToOffset.values.map!(offset => this + offset).array;
 	}
+
+	string toString() @safe
+	{
+		import std.format;
+		return format("(%d,%d)", row, col);
+	}
+
+	static Coords fromString(string s) @safe
+	{
+		return Coords.init;
+	}
 }
 
-
-private const charToKind = [
-	'.': HexKind.EMPTY,
-	'H': HexKind.HIVE,
-	'B': HexKind.BEE,
-	'F': HexKind.FIELD,
-	'R': HexKind.ROCK,
-	'W': HexKind.WALL
+private const charToTerrain = [
+	'.': Terrain.EMPTY,
+	'F': Terrain.FIELD,
+	'R': Terrain.ROCK
 ];
 
-char kindToChar(HexKind kind)
+char kindToChar(Terrain kind)
 {
-	foreach(k, v; charToKind)
+	foreach(k, v; charToTerrain)
 	if (v == kind)
 		return k;
 
 	return ' ';
 }
 
-Hex[Coords] loadMap(string path)
+alias Terrain[Coords] Map;
+
+Tuple!(Map, Spawn[]) loadMap(string path)
 {
 	import std.stdio;
 
-	Hex[Coords] map;
+	Map map;
+	Spawn[] spawns;
 
 	foreach(int trow, string line; File(path, "r").lines)
 	foreach(tcol, char c; line)
 	{
-		Hex hex;
-		if (c in charToKind)
+		auto coords = Coords(trow, tcol.to!int / 2);
+
+		if (c in charToTerrain)
 		{
-			hex.kind = charToKind[c];
-			if (hex.kind == HexKind.HIVE || hex.kind == HexKind.BEE)
-			{
-				hex.player = line[tcol + 1].to!string.to!ubyte;
-			}
-			map[Coords(trow, tcol.to!int / 2)] = hex;
+			map[coords] = charToTerrain[c];
+		}
+		else if (c == 'H' || c == 'B')
+		{
+			auto player = line[tcol + 1].to!string.to!ubyte;
+
+			spawns ~= Spawn(c == 'H' ? Spawn.Kind.HIVE : Spawn.Kind.BEE, player, coords);
+			map[coords] = Terrain.EMPTY;
 		}
 	}
 
-	return map;
+	return tuple(map, spawns);
 }
 
-Tuple!(Coords, Hex)[] sortByCoords(Hex[Coords] m)
-{
-	return m.byPair.array
-		.sort!((a,b) => a.key < b.key)
-		.map!(a => tuple(a.key, a.value))
-		.array;
-}
-
-string mapToString(Hex[Coords] m)
-{
-	import std.format;
-
-	auto res = "";
-
-	auto top = m.keys.map!"a.row".minElement;
-	auto bottom = m.keys.map!"a.row".maxElement;
-	auto left = m.keys.map!"a.col".minElement;
-	auto right = m.keys.map!"a.col".maxElement;
-
-	foreach (row; top .. bottom + 1)
-	{
-		if (row % 2 == 1) res ~= "  ";
-		foreach (col; left .. right + 1)
-		{
-			if (!Coords.valid(row, col)) continue;
-
-			auto coords = Coords(row, col);
-			char c1 = ' ';
-			char c2 = ' ';
-			if (coords in m)
-			{
-				auto hex = m[coords];
-				c1 = hex.kind.kindToChar;
-				c2 = hex.player != 0 ? hex.player.to!string[0] : ' ';
-			}
-			res ~= format("%c%c  ", c1, c2);
-		}
-		res ~= '\n';
-	}
-
-	return res;
-}
+//
+// string mapToString(Hex[Coords] m)
+// {
+// 	import std.format;
+//
+// 	auto res = "";
+//
+// 	auto top = m.keys.map!"a.row".minElement;
+// 	auto bottom = m.keys.map!"a.row".maxElement;
+// 	auto left = m.keys.map!"a.col".minElement;
+// 	auto right = m.keys.map!"a.col".maxElement;
+//
+// 	foreach (row; top .. bottom + 1)
+// 	{
+// 		if (row % 2 == 1) res ~= "  ";
+// 		foreach (col; left .. right + 1)
+// 		{
+// 			if (!Coords.valid(row, col)) continue;
+//
+// 			auto coords = Coords(row, col);
+// 			char c1 = ' ';
+// 			char c2 = ' ';
+// 			if (coords in m)
+// 			{
+// 				auto hex = m[coords];
+// 				c1 = hex.kind.kindToChar;
+// 				c2 = hex.player != 0 ? hex.player.to!string[0] : ' ';
+// 			}
+// 			res ~= format("%c%c  ", c1, c2);
+// 		}
+// 		res ~= '\n';
+// 	}
+//
+// 	return res;
+// }

@@ -6,81 +6,114 @@ import map;
 import order;
 import utils;
 
-const ubyte[HexKind] maxHP = [
-	HexKind.HIVE: 12,
-	HexKind.BEE: 2,
-	HexKind.FIELD: 120,
-	HexKind.WALL: 6,
-	HexKind.EMPTY: 0,
-	HexKind.ROCK: 0
-];
+// const ubyte[Terrain] maxHP = [
+// 	Terrain.HIVE: 12,
+// 	Terrain.BEE: 2,
+// 	Terrain.FIELD: 120,
+// 	Terrain.WALL: 6,
+// 	Terrain.EMPTY: 0,
+// 	Terrain.ROCK: 0
+// ];
+
+const INIT_FIELD_FLOWERS = 120;
+const INIT_HIVE_HP = 12;
+const INIT_BEE_HP = 2;
+
+class Unit
+{
+	Coords position;
+	ubyte player;
+	uint hp;
+
+	this(Coords position, ubyte player, uint hp)
+	{
+		this.position = position;
+		this.player = player;
+		this.hp = hp;
+	}
+}
 
 class GameState
 {
 	ubyte numPlayers;
-	Hex[Coords] hexes;
-	uint[] flowers;
+	const Map map;
 
-	static GameState spawn(const Hex[Coords] baseMap, ubyte numPlayers)
+	uint[] playerFlowers;
+	uint[Coords] fieldFlowers;
+	Unit[] hives;
+	Unit[] bees;
+
+	private static const ubyte[][] playerMappings = [
+		[],
+		[0, 1, 0, 0, 0, 0, 0],
+		[0, 1, 0, 0, 2, 0, 0],
+		[0, 1, 0, 2, 0, 3, 0],
+		[0, 0, 1, 2, 0, 3, 4],
+		[0, 1, 2, 3, 4, 5, 0],
+		[0, 1, 2, 3, 4, 5, 6]
+	];
+
+	this(const Map map, const Spawn[] spawns, ubyte numPlayers)
 	{
-		ubyte[] playerMapping;
-		assert(numPlayers <= 6);
+		assert(numPlayers >= 1 && numPlayers <= 6);
 
-		switch (numPlayers)
+		this.numPlayers = numPlayers;
+		this.map = map;
+
+		// Create units for existing players
+
+		foreach(spawn; spawns)
 		{
-			case 1: playerMapping = [0, 1, 0, 0, 0, 0, 0]; break;
-			case 2: playerMapping = [0, 1, 0, 0, 2, 0, 0]; break;
-			case 3: playerMapping = [0, 1, 0, 2, 0, 3, 0]; break;
-			case 4: playerMapping = [0, 0, 1, 2, 0, 3, 4]; break;
-			case 5: playerMapping = [0, 1, 2, 3, 4, 5, 0]; break;
-			case 6: playerMapping = [0, 1, 2, 3, 4, 5, 6]; break;
-			default: throw new Exception("Invalid player count: " ~ numPlayers.to!string);
-		}
-
-		Hex[Coords] hexes;
-		foreach (coords, baseHex; baseMap)
-		{
-			Hex hex = baseHex;
-
-			hex.player = playerMapping[hex.player];
-			if (hex.kind.among(HexKind.HIVE, HexKind.BEE) && hex.player == 0)
-				hex.kind = HexKind.EMPTY;
-			hex.hp = maxHP[hex.kind];
-
-			hexes[coords] = hex;
-		}
-
-		auto state = new GameState;
-		state.numPlayers = numPlayers;
-		state.hexes = hexes;
-		state.flowers = new uint[numPlayers + 1];
-
-		return state;
-	}
-
-	void applyOrders(Order[] orders)
-	{
-		foreach(order; orders)
-			order.validate(this);
-
-		foreach(order; orders)
-		{
-			// Don't apply invalid orders
-
-			if (order.status != Order.Status.PENDING)
+			auto player = playerMappings[numPlayers][spawn.player];
+			if (player == 0)
 				continue;
 
-			// The unit might have been destroyed
-
-			if (hexes[order.coords].hp <= 0)
+			final switch (spawn.kind)
 			{
-				order.status = Order.Status.DESTROYED;
-				continue;
+				case Spawn.Kind.HIVE:
+					hives ~= new Unit(spawn.coords, player, INIT_HIVE_HP);
+					break;
+
+				case Spawn.Kind.BEE:
+					bees ~= new Unit(spawn.coords, player, INIT_BEE_HP);
+					break;
 			}
-
-			// Otherwise, go!
-
-			order.apply(this);
 		}
+
+		// Prepare flower fields
+
+		foreach(coords, terrain; map)
+		{
+			if (terrain == Terrain.FIELD)
+				fieldFlowers[coords] = INIT_FIELD_FLOWERS;
+		}
+
+		this.playerFlowers = new uint[numPlayers + 1];
 	}
+
+	// void applyOrders(Order[] orders)
+	// {
+	// 	foreach(order; orders)
+	// 		order.validate(this);
+	//
+	// 	foreach(order; orders)
+	// 	{
+	// 		// Don't apply invalid orders
+	//
+	// 		if (order.status != Order.Status.PENDING)
+	// 			continue;
+	//
+	// 		// The unit might have been destroyed
+	//
+	// 		if (hexes[order.coords].hp <= 0)
+	// 		{
+	// 			order.status = Order.Status.DESTROYED;
+	// 			continue;
+	// 		}
+	//
+	// 		// Otherwise, go!
+	//
+	// 		order.apply(this);
+	// 	}
+	// }
 }

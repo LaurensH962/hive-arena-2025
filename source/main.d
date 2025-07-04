@@ -9,26 +9,10 @@ import order;
 void main()
 {
 	auto map = loadMap("map.txt");
-	auto game = GameState.spawn(map, 4);
-
-	write(game.hexes.mapToString);
-
-//	write(game.hexes.byPair.filter!(a => a.value.kind == HexKind.BEE));
-
-	auto foo = new MoveOrder();
-	foo.player = 1;
-	foo.coords = Coords(2,14);
-	foo.dir = Direction.SE;
-
-	auto bar = new AttackOrder();
-	bar.player = 1;
-	bar.coords = Coords(2,12);
-	bar.dir = Direction.NE;
+	auto game = new GameState(map[0], map[1], 4);
 
 
-	game.applyOrders([foo, bar]);
-	writeln(foo.status);
-
-	write(game.hexes.mapToString);
-	writeln(game.hexes[Coords(1,13)]);
+	import vibe.data.json;
+	writeln(serialize!JsonSerializer(game));
+	writeln(serialize!JsonSerializer(game.map));
 }
