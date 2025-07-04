@@ -94,15 +94,13 @@ class GameState
 	Unit find(string which)(Coords coords)
 	{
 		Unit[] arr;
-		static if (which == "bee")
-			arr = bees;
-		else static if (which == "hive")
-			arr = hives;
-		else
-			static assert(0);
+
+		static if (which == "bee") arr = bees;
+		else static if (which == "hive") arr = hives;
+		else static assert(0);
 
 		auto res = arr.find!(unit => unit.position == coords);
-		return res.length == 0 ? null : res[0];
+		return res.empty ? null : res.front;
 	}
 
 	// void applyOrders(Order[] orders)
