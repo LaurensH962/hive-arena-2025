@@ -4,7 +4,6 @@ import std.conv;
 
 import terrain;
 import order;
-import utils;
 
 const INIT_FIELD_FLOWERS = 120;
 const INIT_HIVE_HP = 12;

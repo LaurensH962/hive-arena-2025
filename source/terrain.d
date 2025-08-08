@@ -73,17 +73,6 @@ struct Coords
 	{
 		return directionToOffset.values.map!(offset => this + offset).array;
 	}
-
-	string toString() @safe
-	{
-		import std.format;
-		return format("(%d,%d)", row, col);
-	}
-
-	static Coords fromString(string s) @safe
-	{
-		return Coords.init;
-	}
 }
 
 private const charToTerrain = [
