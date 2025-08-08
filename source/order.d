@@ -10,6 +10,7 @@ class Order
 		PENDING,
 		INVALID_UNIT,
 		BLOCKED,
+		INVALID_TARGET,
 
 		OK
 	}
@@ -51,6 +52,11 @@ class TargetOrder : Order
 		super(state, player, coords);
 		this.direction = direction;
 	}
+
+	Coords target() const pure
+	{
+		return coords.neighbour(direction);
+	}
 }
 
 class MoveOrder : TargetOrder
@@ -65,7 +71,6 @@ class MoveOrder : TargetOrder
 		auto bee = getUnit!Bee();
 		if (bee is null) return;
 
-		auto target = coords.neighbour(direction);
 		auto targetTerrain = state.getTerrainAt(target);
 		auto entity = state.getEntityAt(target);
 
@@ -84,30 +89,34 @@ class MoveOrder : TargetOrder
 	}
 }
 
-// class AttackOrder : TargetOrder
-// {
-// 	this(GameState state)
-// 	{
-// 		super(state);
-// 	}
-//
-// 	override void apply()
-// 	{
-// 		auto target = coords.neighbour(direction);
-// 		auto targetHex = state.hexes[target];
-//
-// 		if (targetHex.kind.among(Terrain.BEE, Terrain.HIVE, Terrain.WALL))
-// 		{
-// 			targetHex.hp--;
-// 			if (targetHex.hp <= 0)
-// 				targetHex = Hex.init;
-//
-// 			state.hexes[target] = targetHex;
-// 		}
-//
-// 		status = Status.OK;
-// 	}
-// }
+class AttackOrder : TargetOrder
+{
+	this(GameState state, ubyte player, Coords coords, Direction direction)
+	{
+		super(state, player, coords, direction);
+	}
+
+	override void apply()
+	{
+		auto bee = getUnit!Bee();
+		if (bee is null) return;
+
+		auto entity = state.getEntityAt(target);
+		if (entity is null)
+		{
+			status = Status.INVALID_TARGET;
+			return;
+		}
+
+		entity.hp--;
+		if (entity.hp <= 0)
+		{
+			state.entities.remove(target);
+		}
+
+		status = Status.OK;
+	}
+}
 //
 // class ForageOrder : TargetOrder
 // {

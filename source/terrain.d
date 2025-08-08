@@ -30,7 +30,7 @@ enum Direction
 	E, SE, SW, W, NW, NE
 }
 
-const Coords[Direction] directionToOffset = [
+immutable Coords[Direction] directionToOffset = [
 	Direction.E: Coords(+0, +2),
 	Direction.NE: Coords(-1, +1),
 	Direction.NW: Coords(-1, -1),
@@ -65,7 +65,7 @@ struct Coords
 		return rowCmp == 0 ? col - rhs.col : rowCmp;
 	}
 
-	Coords neighbour(Direction dir) const
+	Coords neighbour(Direction dir) const pure
 	{
 		return this + directionToOffset[dir];
 	}
