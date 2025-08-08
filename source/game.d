@@ -107,6 +107,16 @@ class GameState
 		this.playerFlowers = new uint[numPlayers + 1];
 	}
 
+	Entity getEntityAt(Coords coords)
+	{
+		return entities.get(coords, null);
+	}
+	
+	Terrain getTerrainAt(Coords coords)
+	{
+		return staticMap.get(coords, Terrain.INVALID);
+	}
+
 	override string toString()
 	{
 		import std.format;

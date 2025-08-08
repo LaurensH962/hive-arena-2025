@@ -5,6 +5,7 @@ import std.typecons;
 
 enum Terrain
 {
+	INVALID,
 	EMPTY,
 	ROCK,
 	FIELD
