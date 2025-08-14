@@ -11,6 +11,11 @@ enum Terrain
 	FIELD
 }
 
+bool isWalkable(Terrain t)
+{
+	return t == Terrain.EMPTY || t == Terrain.FIELD;
+}
+
 struct Spawn
 {
 	enum Kind {HIVE, BEE};

@@ -10,6 +10,10 @@ const INIT_HIVE_HP = 12;
 const INIT_BEE_HP = 2;
 const INIT_WALL_HP = 6;
 
+const BEE_COST = 12;
+const HIVE_COST = 24;
+const WALL_COST = 6;
+
 class Entity
 {
 	Coords position;
