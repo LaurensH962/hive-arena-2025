@@ -116,8 +116,7 @@ class AttackOrder : TargetOrder
 
 	override void apply()
 	{
-		auto bee = getUnit!Bee();
-		if (bee is null) return;
+		if (getUnit!Bee is null) return;
 
 		auto entity = state.getEntityAt(target);
 		if (entity is null)
@@ -145,8 +144,7 @@ class BuildWallOrder : TargetOrder
 
 	override void apply()
 	{
-		auto bee = getUnit!Bee();
-		if (bee is null) return;
+		if (getUnit!Bee is null) return;
 		if (targetIsBlocked) return;
 
 		if (!tryToPay(WALL_COST)) return;
@@ -167,8 +165,7 @@ class ForageOrder : Order
 
 	override void apply()
 	{
-		auto bee = getUnit!Bee();
-		if (bee is null) return;
+		if (getUnit!Bee is null) return;
 
 		auto terrain = state.getTerrainAt(coords);
 		if (terrain != Terrain.FIELD || state.fieldFlowers[coords] == 0)
@@ -193,8 +190,7 @@ class BuildHiveOrder : Order
 
 	override void apply()
 	{
-		auto bee = getUnit!Bee();
-		if (bee is null) return;
+		if (getUnit!Bee is null) return;
 
 		if (!tryToPay(HIVE_COST)) return;
 
@@ -212,8 +208,7 @@ class SpawnOrder : TargetOrder
 
 	override void apply()
 	{
-		auto hive = getUnit!Hive();
-		if (hive is null) return;
+		if (getUnit!Hive is null) return;
 		if (targetIsBlocked) return;
 
 		if (!tryToPay(BEE_COST)) return;
