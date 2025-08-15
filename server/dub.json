@@ -1,4 +1,5 @@
 {
+	"name": "server",
 	"authors": [
 		"Noé Falzon"
 	],
@@ -7,6 +8,5 @@
 		"arena": "*"
 	},
 	"description": "AI agent writing competition for the Hive Helsinki school",
-	"license": "proprietary",
-	"name": "cli"
+	"license": "proprietary"
 }
