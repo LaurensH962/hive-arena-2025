@@ -12,17 +12,10 @@ JSONValue serialize(const Entity entity, const Coords position)
 
 	j["row"] = position.row;
 	j["col"] = position.col;
+
+	j["type"] = entity.type.to!string;
 	j["hp"] = entity.hp;
-
-	if (auto unit = cast(Unit) entity)
-		j["player"] = unit.player;
-
-	if (cast(Wall) entity)
-		j["type"] = "wall";
-	else if (cast(Bee) entity)
-		j["type"] = "bee";
-	else if (cast(Hive) entity)
-		j["type"] = "hive";
+	j["player"] = entity.player;
 
 	return j;
 }
@@ -30,22 +23,12 @@ JSONValue serialize(const Entity entity, const Coords position)
 Tuple!(Entity,Coords) deserializeEntity(JSONValue j)
 {
 	Coords pos = Coords(j["row"].get!int, j["col"].get!int);
-	Entity entity;
 
-	switch (auto type = j["type"].get!string)
-	{
-		case "wall":
-			entity = new Wall(j["hp"].get!int);
-			break;
-		case "bee":
-			entity = new Bee(j["player"].get!ubyte, j["hp"].get!int);
-			break;
-		case "hive":
-			entity = new Hive(j["player"].get!ubyte, j["hp"].get!int);
-			break;
-		default:
-			throw new Exception("Unknown entity type: " ~ type);
-	}
+	auto entity = new Entity(
+		j["type"].get!string.to!(Entity.Type),
+		j["hp"].get!int,
+		j["player"].get!ubyte
+	);
 
 	return tuple(entity, pos);
 }

@@ -17,46 +17,22 @@ const WALL_COST = 6;
 
 class Entity
 {
+	enum Type
+	{
+		WALL,
+		HIVE,
+		BEE
+	}
+
+	Type type;
 	int hp;
+	ubyte player;
 
-	this(int hp)
+	this(Type type, int hp, ubyte player)
 	{
+		this.type = type;
 		this.hp = hp;
-	}
-}
-
-class Wall : Entity
-{
-	this(int hp)
-	{
-		super(hp);
-	}
-}
-
-class Unit : Entity
-{
-	const ubyte player;
-
-	this(ubyte player, int hp)
-	{
-		super(hp);
 		this.player = player;
-	}
-}
-
-class Bee : Unit
-{
-	this(ubyte player, int hp)
-	{
-		super(player, hp);
-	}
-}
-
-class Hive : Unit
-{
-	this(ubyte player, int hp)
-	{
-		super(player, hp);
 	}
 }
 
@@ -97,11 +73,11 @@ class GameState
 			final switch (spawn.kind)
 			{
 				case Spawn.Kind.HIVE:
-					entities[spawn.coords] = new Hive(player, INIT_HIVE_HP);
+					entities[spawn.coords] = new Entity(Entity.Type.HIVE, INIT_HIVE_HP, player);
 					break;
 
 				case Spawn.Kind.BEE:
-					entities[spawn.coords] = new Bee(player, INIT_BEE_HP);
+					entities[spawn.coords] = new Entity(Entity.Type.BEE, INIT_BEE_HP, player);
 					break;
 			}
 		}
@@ -153,7 +129,7 @@ class GameState
 		foreach (round; rounds)
 		foreach (order; round)
 		{
-			auto unit = order.getUnit!Unit();
+			auto unit = getEntityAt(order.coords);
 			if (unit in acted)
 			{
 				order.status = Order.Status.UNIT_ALREADY_ACTED;
@@ -189,21 +165,23 @@ class GameState
 				if (coords in staticMap)
 				{
 					c1 = terrain.terrainToChar(staticMap[coords]);
-					auto entity = entities.get(coords, null);
 
-					if (auto bee = cast(Bee) entity)
+					if (auto entity = getEntityAt(coords))
 					{
-						c1 = 'B';
-						c2 = bee.player.to!string[0];
-					}
-					else if (auto hive = cast(Hive) entity)
-					{
-						c1 = 'H';
-						c2 = hive.player.to!string[0];
-					}
-					else if (auto wall = cast(Wall) entity)
-					{
-						c1 = 'W';
+						final switch (entity.type)
+						{
+							case Entity.Type.BEE:
+								c1 = 'B';
+								c2 = entity.player.to!string[0];
+								break;
+							case Entity.Type.HIVE:
+								c1 = 'H';
+								c2 = entity.player.to!string[0];
+								break;
+							case Entity.Type.WALL:
+								c1 = 'W';
+								break;
+						}
 					}
 				}
 				res ~= format("%c%c  ", c1, c2);

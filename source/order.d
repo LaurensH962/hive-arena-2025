@@ -30,10 +30,10 @@ class Order
 		this.coords = coords;
 	}
 
-	T getUnit(T : Unit)()
+	Entity getUnit(Entity.Type type)
 	{
-		auto unit = cast(T) state.getEntityAt(coords);
-		if (unit is null || unit.player != player)
+		auto unit = state.getEntityAt(coords);
+		if (unit is null || unit.type != type || unit.player != player)
 		{
 			status = Status.INVALID_UNIT;
 			return null;
@@ -95,7 +95,7 @@ class MoveOrder : TargetOrder
 
 	override void apply()
 	{
-		auto bee = getUnit!Bee();
+		auto bee = getUnit(Entity.Type.BEE);
 		if (bee is null) return;
 		if (targetIsBlocked()) return;
 
@@ -115,7 +115,7 @@ class AttackOrder : TargetOrder
 
 	override void apply()
 	{
-		if (getUnit!Bee is null) return;
+		if (getUnit(Entity.Type.BEE) is null) return;
 
 		auto entity = state.getEntityAt(target);
 		if (entity is null)
@@ -143,12 +143,12 @@ class BuildWallOrder : TargetOrder
 
 	override void apply()
 	{
-		if (getUnit!Bee is null) return;
+		if (getUnit(Entity.Type.BEE) is null) return;
 		if (targetIsBlocked) return;
 
 		if (!tryToPay(WALL_COST)) return;
 
-		auto wall = new Wall(INIT_WALL_HP);
+		auto wall = new Entity(Entity.Type.WALL, INIT_WALL_HP, player);
 		state.entities[target] = wall;
 
 		status = Status.OK;
@@ -164,7 +164,7 @@ class ForageOrder : Order
 
 	override void apply()
 	{
-		if (getUnit!Bee is null) return;
+		if (getUnit(Entity.Type.BEE) is null) return;
 
 		auto terrain = state.getTerrainAt(coords);
 		if (terrain != Terrain.FIELD || state.fieldFlowers[coords] == 0)
@@ -189,11 +189,11 @@ class BuildHiveOrder : Order
 
 	override void apply()
 	{
-		if (getUnit!Bee is null) return;
+		if (getUnit(Entity.Type.BEE) is null) return;
 
 		if (!tryToPay(HIVE_COST)) return;
 
-		auto hive = new Hive(player, INIT_HIVE_HP);
+		auto hive = new Entity(Entity.Type.HIVE, player, INIT_HIVE_HP);
 		state.entities[coords] = hive;
 	}
 }
@@ -207,12 +207,12 @@ class SpawnOrder : TargetOrder
 
 	override void apply()
 	{
-		if (getUnit!Hive is null) return;
+		if (getUnit(Entity.Type.HIVE) is null) return;
 		if (targetIsBlocked) return;
 
 		if (!tryToPay(BEE_COST)) return;
 
-		auto bee = new Bee(player, INIT_BEE_HP);
+		auto bee = new Entity(Entity.Type.BEE, player, INIT_BEE_HP);
 		state.entities[target] = bee;
 	}
 }
