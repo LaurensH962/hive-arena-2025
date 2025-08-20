@@ -123,3 +123,46 @@ GameState deserializeGameState(JSONValue j)
 
 	return game;
 }
+
+JSONValue serialize(const Order order)
+{
+	JSONValue j;
+
+	j["row"] = order.coords.row;
+	j["col"] = order.coords.col;
+	j["player"] = order.player;
+	j["status"] = order.status.to!string;
+
+	if (auto targetOrder = cast(TargetOrder) order)
+		j["direction"] = targetOrder.direction.to!string;
+
+	string type;
+	if (cast(MoveOrder) order) type = "MOVE";
+	else if (cast(AttackOrder) order) type = "ATTACK";
+	else if (cast(BuildWallOrder) order) type = "BUILD_WALL";
+	else if (cast(BuildHiveOrder) order) type = "BUILD_HIVE";
+	else if (cast(ForageOrder) order) type = "FORAGE";
+	else if (cast(SpawnOrder) order) type = "SPAWN";
+
+	j["type"] = type;
+
+	return j;
+}
+
+Order deserializeOrder(JSONValue j)
+{
+	auto coords = Coords(j["row"].get!int, j["col"].get!int);
+	auto player = j["player"].get!ubyte;
+	auto type = j["type"].get!string;
+
+	switch (type)
+	{
+		case "MOVE": return new MoveOrder(null, player, coords, j["direction"].get!string.to!Direction);
+		case "ATTACK": return new AttackOrder(null, player, coords, j["direction"].get!string.to!Direction);
+		case "BUILD_WALL": return new BuildWallOrder(null, player, coords, j["direction"].get!string.to!Direction);
+		case "BUILD_HIVE": return new BuildHiveOrder(null, player, coords);
+		case "FORAGE": return new ForageOrder(null, player, coords);
+		case "SPAWN": return new SpawnOrder(null, player, coords, j["direction"].get!string.to!Direction);
+		default: throw new Exception("Invalid order type:" ~ type);
+	}
+}

@@ -1,11 +1,18 @@
 import std.stdio;
 import std.json;
 import std.getopt;
+import std.algorithm;
 
 import game;
 import terrain;
 import order;
 import serialization;
+
+void process(JSONValue data)
+{
+	auto game = deserializeGameState(data["gamestate"]);
+	auto orders = data["orders"].array.map!(arr => arr.array.map!deserializeOrder);
+}
 
 void main(string[] args)
 {
@@ -33,7 +40,7 @@ void main(string[] args)
 		auto txt = readText(toProcess);
 		auto data = parseJSON(txt);
 
-		writeln(data);
+		process(data);
 	}
 	else
 	{
