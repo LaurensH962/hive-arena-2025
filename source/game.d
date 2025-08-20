@@ -47,12 +47,12 @@ class GameState
 
 	private static const ubyte[][] playerMappings = [
 		[],
-		[0, 1, 0, 0, 0, 0, 0],
-		[0, 1, 0, 0, 2, 0, 0],
-		[0, 1, 0, 2, 0, 3, 0],
-		[0, 0, 1, 2, 0, 3, 4],
-		[0, 1, 2, 3, 4, 5, 0],
-		[0, 1, 2, 3, 4, 5, 6]
+		[ 0, -1, -1, -1, -1, -1],
+		[ 0, -1, -1,  1, -1, -1],
+		[ 0, -1,  1, -1,  2, -1],
+		[-1,  0,  1, -1,  2,  3],
+		[ 0,  1,  2,  3,  4, -1],
+		[ 0,  1,  2,  3,  4,  5]
 	];
 
 	this(const Map staticMap, const Spawn[] spawns, ubyte numPlayers)
@@ -67,7 +67,7 @@ class GameState
 		foreach (spawn; spawns)
 		{
 			auto player = playerMappings[numPlayers][spawn.player];
-			if (player == 0)
+			if (player == -1)
 				continue;
 
 			final switch (spawn.kind)
@@ -90,7 +90,9 @@ class GameState
 				fieldFlowers[coords] = INIT_FIELD_FLOWERS;
 		}
 
-		this.playerFlowers = new uint[numPlayers + 1];
+		// And player resources
+
+		this.playerFlowers = new uint[numPlayers];
 	}
 
 	Entity getEntityAt(Coords coords)
@@ -189,7 +191,7 @@ class GameState
 			res ~= '\n';
 		}
 
-		res ~= "Resources: " ~ playerFlowers[1 .. $].to!string;
+		res ~= "Resources: " ~ playerFlowers.to!string;
 
 		return res;
 	}
