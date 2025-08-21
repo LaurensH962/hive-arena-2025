@@ -59,6 +59,7 @@ for row = top,bottom do
 	io.write "\n"
 end
 
+print("Turn: ", data.turn)
 print("Resources: ", table.concat(data.resources, ", "))
 print("Game over:", data.gameOver)
 if (data.gameOver) then
