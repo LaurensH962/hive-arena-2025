@@ -3,7 +3,7 @@ import std.array;
 import std.conv;
 import std.random;
 import std.typecons;
-
+import std.range;
 
 import terrain;
 import order;
@@ -192,6 +192,34 @@ class GameState
 			if (closestPlayers.keys.length == 1)
 				influence[cell] = closestPlayers.keys[0];
 		}
+	}
+
+	ubyte[] winners()
+	{
+		// Count influenced cells and hives
+
+		auto influenceCounts = new uint[numPlayers];
+		auto hiveCounts = new uint[numPlayers];
+
+		foreach(cell, player; influence)
+			influenceCounts[player]++;
+
+		foreach(cell, entity; entities)
+		if (entity.type == Entity.Type.HIVE)
+			hiveCounts[entity.player]++;
+
+		// If a single player has hives, they win
+
+		if (hiveCounts.count!(a => a > 0) == 1)
+			return [cast(ubyte) hiveCounts.maxIndex];
+
+		// Check who has more than half the map influenced
+
+		auto maxInfluence = influenceCounts.maxElement;
+		if (maxInfluence <= staticMap.length / 2)
+			return [];
+
+		return iota!ubyte(0, numPlayers).filter!(a => influenceCounts[a] == maxInfluence).array;
 	}
 
 	override string toString()

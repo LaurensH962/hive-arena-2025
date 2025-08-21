@@ -89,13 +89,9 @@ At the end of the turn, the game state is checked for victory conditions. A play
 - they are the only player with units or buildings remaining.
 - OR: they influence more than 50% of all the cells in the map.
 
-If several players reach victory conditions on the same turn, tiebreakers are applied in this order:
+If several players reach victory conditions on the same turn, the one with most influence wins. Otherwise, the game is a shared victory between these players.
 
-- number of cells influenced
-- number of resources
-- number of bees
-
-The end game is also triggered if no resources were gathered, or no entities were created in the last N turns. Winner is determined as per the tiebreakers.
+The game ends in a draw if there has been no change in influence counts in the last N turns.
 
 ## Hardcoded values
 
