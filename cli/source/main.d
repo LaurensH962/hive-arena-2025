@@ -34,12 +34,24 @@ void main(string[] args)
 	string mapPath;
 	ubyte players;
 	string toProcess;
+	bool help;
 
 	getopt(args,
 		"map", &mapPath,
 		"players", &players,
-		"process", &toProcess
+		"process", &toProcess,
+		"help", &help
 	);
+
+	if (help)
+	{
+		writeln("Usage:");
+		writeln(args[0], " --map=<map file> --players=<number of players to spawn>");
+		writeln(args[0], " --process=<json formatted game state and orders>");
+		writeln("Without arguments, process standard input");
+
+		return;
+	}
 
 	if (mapPath.length != 0)
 	{
@@ -59,8 +71,13 @@ void main(string[] args)
 	}
 	else
 	{
-		writeln("Usage:");
-		writeln(args[0], " --map=<map file> --players=<number of players to spawn>");
-		writeln(args[0], " --process=<json formatted game state and orders>");
+		string[] input;
+		foreach(string line; lines(stdin))
+			input ~= line;
+
+		string txt = input.join;
+		auto data = parseJSON(txt);
+
+		process(data);
 	}
 }
