@@ -1,4 +1,4 @@
-local json = require "json"
+local json = require "lunajson"		-- luarocks install lunajson
 
 local args = {...}
 local txt
