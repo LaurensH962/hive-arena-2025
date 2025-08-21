@@ -8,7 +8,7 @@ import std.range;
 import terrain;
 import order;
 
-const INIT_FIELD_FLOWERS = 120;
+const INIT_FIELD_FLOWERS = 60;
 const INIT_HIVE_HP = 12;
 const INIT_BEE_HP = 2;
 const INIT_WALL_HP = 6;
