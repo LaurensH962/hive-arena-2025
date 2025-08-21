@@ -74,7 +74,7 @@ local function makeOrders(state, player, index)
 
 			if enemyDir then
 				type = "ATTACK"
-			elseif terrain == "FIELD" and cell.flowers and cell.flowers > 0 then
+			elseif terrain == "FIELD" and cell.resources and cell.resources > 0 then
 				type = "FORAGE"
 			elseif cell.influence ~= player and state.resources[player + 1] >= 24 then
 				type = "BUILD_HIVE"

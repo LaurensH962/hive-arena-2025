@@ -41,14 +41,14 @@ local entityToChar = {
 	WALL = "W"
 }
 
-local totalFlowers = 0
+local totalResources = 0
 
 for i,v in ipairs(data.map) do
 	local c = terrainToChar[v.type]
 	lines[v.row][v.col] = c
 
-	if v.flowers then
-		totalFlowers = totalFlowers + v.flowers
+	if v.resources then
+		totalResources = totalResources + v.resources
 	end
 end
 
@@ -68,7 +68,7 @@ end
 print("Turn: ", data.turn)
 print("Last influence change: ", data.lastInfluenceChange)
 print("Resources: ", table.concat(data.resources, ", "))
-print("Resources left on map: ", totalFlowers)
+print("Resources left on map: ", totalResources)
 print("Game over:", data.gameOver)
 if (data.gameOver) then
 	print("Winners:", table.concat(data.winners, ", "))

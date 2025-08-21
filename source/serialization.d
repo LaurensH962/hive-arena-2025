@@ -67,7 +67,7 @@ JSONValue serialize(const Map map, const uint[Coords] mapResources, const Player
 		t["type"] = terrain.to!string;
 
 		if (terrain == Terrain.FIELD)
-			t["flowers"] = mapResources[coords];
+			t["resources"] = mapResources[coords];
 
 		if (influence && coords in influence)
 			t["influence"] = influence[coords];
@@ -91,7 +91,7 @@ Tuple!(Map, uint[Coords]) deserializeMap(JSONValue j)
 		map[pos] = terrain;
 
 		if (terrain == Terrain.FIELD)
-			flowers[pos] = t["flowers"].get!uint;
+			flowers[pos] = t["resources"].get!uint;
 	}
 
 	return tuple(map, flowers);
