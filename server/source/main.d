@@ -78,12 +78,11 @@ class Server
 		GameID id;
 		do { id = uniform!GameID; } while (id in games);
 
+		Game game;
+
 		try
 		{
-			auto game = new Game(id, players, map);
-			games[id] = game;
-
-			return game.serializeToJson;
+			game = new Game(id, players, map);
 		}
 		catch (ErrnoException e)
 		{
@@ -95,6 +94,9 @@ class Server
 			status(HTTPStatus.badRequest);
 			return Json(e.msg);
 		}
+
+		games[id] = game;
+		return game.serializeToJson;
 	}
 
 	Json getStatus()
