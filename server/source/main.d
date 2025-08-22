@@ -4,6 +4,8 @@ import std.stdio;
 import std.exception;
 import std.datetime.systime;
 import std.format;
+import std.file;
+import std.regex;
 
 import vibe.vibe;
 
@@ -41,11 +43,11 @@ class Game
 		return tokens.keys;
 	}
 
-	this(GameID id, int numPlayers, string map)
+	this(GameID id, int numPlayers, MapData map)
 	{
 		this.id = id;
 		this.numPlayers = numPlayers;
-		this.map = map;
+		this.map = map.name;
 
 		createdDate = Clock.currTime;
 
@@ -53,17 +55,19 @@ class Game
 		adminToken = tokens[0];
 		playerTokens = tokens[1 .. $];
 
-		auto mapData = loadMap(MAP_DIR ~ "/" ~ map ~ ".txt");
-		state = new GameState(mapData[0], mapData[1], numPlayers);
+		state = new GameState(map, numPlayers);
 	}
 }
 
 class Server
 {
+	MapData[string] maps;
 	Game[GameID] games;
 
 	this(ushort port)
 	{
+		loadMaps();
+
 		auto router = new URLRouter;
 		router.registerWebInterface(this);
 
@@ -73,27 +77,38 @@ class Server
 		listenHTTP(settings, router);
 	}
 
+	private void loadMaps()
+	{
+		foreach (path; dirEntries(MAP_DIR, SpanMode.shallow))
+		{
+			auto name = path.name.matchFirst(r"/(\w+)\.txt")[1];
+			auto map = loadMap(path);
+
+			map.name = name;
+			maps[name] = map;
+		}
+
+		logInfo("Loaded maps: " ~ maps.keys.join(", "));
+	}
+
 	Json getNewgame(int players, string map)
 	{
 		GameID id;
 		do { id = uniform!GameID; } while (id in games);
 
-		Game game;
-
-		try
-		{
-			game = new Game(id, players, map);
-		}
-		catch (ErrnoException e)
+		if (map !in maps)
 		{
 			status(HTTPStatus.badRequest);
 			return Json("Unknown map: " ~ map);
 		}
-		catch (Exception e)
+
+		if (!GameState.validNumPlayers(players))
 		{
 			status(HTTPStatus.badRequest);
-			return Json(e.msg);
+			return Json("Invalid player count: " ~ players.to!string);
 		}
+
+		Game game = new Game(id, players, maps[map]);
 
 		games[id] = game;
 		return game.serializeToJson;

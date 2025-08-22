@@ -113,9 +113,16 @@ char terrainToChar(Terrain kind)
 	return ' ';
 }
 
-alias Terrain[Coords] Map;
+alias Map = Terrain[Coords];
 
-Tuple!(Map, Spawn[]) loadMap(string path)
+struct MapData
+{
+	string name;
+	Map map;
+	Spawn[] spawns;
+}
+
+MapData loadMap(string path)
 {
 	import std.stdio;
 
@@ -143,5 +150,5 @@ Tuple!(Map, Spawn[]) loadMap(string path)
 		}
 	}
 
-	return tuple(map, spawns);
+	return MapData(path, map, spawns);
 }
