@@ -20,7 +20,7 @@ const WALL_COST = 6;
 const HIVE_FIELD_OF_VIEW = 4;
 const INFLUENCE_TIMEOUT = 50;
 
-alias Player = uint;
+alias PlayerID = uint;
 
 class Entity
 {
@@ -33,9 +33,9 @@ class Entity
 
 	Type type;
 	int hp;
-	Player player;
+	PlayerID player;
 
-	this(Type type, int hp, Player player)
+	this(Type type, int hp, PlayerID player)
 	{
 		this.type = type;
 		this.hp = hp;
@@ -45,7 +45,7 @@ class Entity
 
 class GameState
 {
-	const Player numPlayers;
+	const PlayerID numPlayers;
 	const Map staticMap;
 
 	uint turn;
@@ -54,10 +54,10 @@ class GameState
 	uint[Coords] mapResources;
 	Entity[Coords] entities;
 
-	Player[Coords] influence;
+	PlayerID[Coords] influence;
 	uint lastInfluenceChange;
 
-	Player[] winners;
+	PlayerID[] winners;
 	bool gameOver;
 
 	private static const byte[][] playerMappings = [
@@ -70,17 +70,17 @@ class GameState
 		[ 0,  1,  2,  3,  4,  5]
 	];
 
-	static bool validNumPlayers(Player numPlayers)
+	static bool validNumPlayers(PlayerID numPlayers)
 	{
 		return numPlayers >= 1 && numPlayers <= 6;
 	}
 
-	this(const MapData mapData, Player numPlayers)
+	this(const MapData mapData, PlayerID numPlayers)
 	{
 		this(mapData.map, mapData.spawns, numPlayers);
 	}
 
-	this(const Map map, const Spawn[] spawns, Player numPlayers)
+	this(const Map map, const Spawn[] spawns, PlayerID numPlayers)
 	{
 		this.numPlayers = numPlayers;
 		this.staticMap = staticMap;
@@ -185,7 +185,7 @@ class GameState
 		foreach(cell; staticMap.keys)
 		{
 			auto minDist = uint.max;
-			bool[Player] closestPlayers;
+			bool[PlayerID] closestPlayers;
 
 			foreach (hive; hives)
 			{
@@ -239,7 +239,7 @@ class GameState
 
 		if (hiveCounts.count!(a => a > 0) == 1)
 		{
-			winners ~= cast(Player) hiveCounts.maxIndex;
+			winners ~= cast(PlayerID) hiveCounts.maxIndex;
 			gameOver = true;
 			return;
 		}
@@ -250,7 +250,7 @@ class GameState
 		if (maxInfluence <= staticMap.length / 2)
 			return;
 
-		foreach (Player p; 0 .. numPlayers)
+		foreach (PlayerID p; 0 .. numPlayers)
 		if (influenceCounts[p] == maxInfluence)
 			winners ~= p;
 

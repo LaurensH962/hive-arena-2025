@@ -18,12 +18,12 @@ class Order
 	}
 
 	GameState state;
-	const Player player;
+	const PlayerID player;
 	const Coords coords;
 
 	Status status;
 
-	this(GameState state, Player player, Coords coords)
+	this(GameState state, PlayerID player, Coords coords)
 	{
 		this.state = state;
 		this.player = player;
@@ -60,7 +60,7 @@ class TargetOrder : Order
 {
 	const Direction direction;
 
-	this(GameState state, Player player, Coords coords, Direction direction)
+	this(GameState state, PlayerID player, Coords coords, Direction direction)
 	{
 		super(state, player, coords);
 		this.direction = direction;
@@ -88,7 +88,7 @@ class TargetOrder : Order
 
 class MoveOrder : TargetOrder
 {
-	this(GameState state, Player player, Coords coords, Direction direction)
+	this(GameState state, PlayerID player, Coords coords, Direction direction)
 	{
 		super(state, player, coords, direction);
 	}
@@ -108,7 +108,7 @@ class MoveOrder : TargetOrder
 
 class AttackOrder : TargetOrder
 {
-	this(GameState state, Player player, Coords coords, Direction direction)
+	this(GameState state, PlayerID player, Coords coords, Direction direction)
 	{
 		super(state, player, coords, direction);
 	}
@@ -136,7 +136,7 @@ class AttackOrder : TargetOrder
 
 class BuildWallOrder : TargetOrder
 {
-	this(GameState state, Player player, Coords coords, Direction direction)
+	this(GameState state, PlayerID player, Coords coords, Direction direction)
 	{
 		super(state, player, coords, direction);
 	}
@@ -157,7 +157,7 @@ class BuildWallOrder : TargetOrder
 
 class ForageOrder : Order
 {
-	this(GameState state, Player player, Coords coords)
+	this(GameState state, PlayerID player, Coords coords)
 	{
 		super(state, player, coords);
 	}
@@ -182,7 +182,7 @@ class ForageOrder : Order
 
 class BuildHiveOrder : Order
 {
-	this(GameState state, Player player, Coords coords)
+	this(GameState state, PlayerID player, Coords coords)
 	{
 		super(state, player, coords);
 	}
@@ -202,7 +202,7 @@ class BuildHiveOrder : Order
 
 class SpawnOrder : TargetOrder
 {
-	this(GameState state, Player player, Coords coords, Direction direction)
+	this(GameState state, PlayerID player, Coords coords, Direction direction)
 	{
 		super(state, player, coords, direction);
 	}

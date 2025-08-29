@@ -19,6 +19,12 @@ const MAP_DIR = "maps";
 alias GameID = uint;
 alias Token = string;
 
+class Player
+{
+	PlayerID player;
+	Token token;
+}
+
 class Game
 {
 	GameID id;
@@ -29,6 +35,8 @@ class Game
 
 	Token adminToken;
 	Token[] playerTokens;
+
+	Player[] players;
 
 	GameState state;
 
@@ -58,6 +66,24 @@ class Game
 		playerTokens = tokens[1 .. $];
 
 		state = new GameState(map, numPlayers);
+	}
+
+	Player addPlayer()
+	{
+		if (full)
+			throw new Exception("Game is full");
+
+		auto player = new Player();
+		player.player = cast(PlayerID) players.length;
+		player.token = playerTokens[player.player];
+
+		players ~= player;
+		return player;
+	}
+
+	bool full()
+	{
+		return players.length == numPlayers;
 	}
 }
 
@@ -134,7 +160,8 @@ class Server
 	struct StatusResponse
 	{
 		GameID id;
-		int numPlayers;
+		uint numPlayers;
+		uint playersJoined;
 		string map;
 		SysTime createdDate;
 	}
@@ -144,9 +171,29 @@ class Server
 		return games.values.map!(game => StatusResponse(
 			id: game.id,
 			numPlayers: game.numPlayers,
+			playersJoined: cast(int) game.players.length,
 			map: game.map,
 			createdDate: game.createdDate
 		)).array.serializeToJson;
+	}
+
+	Json getJoin(GameID id)
+	{
+		if (id !in games)
+		{
+			status(HTTPStatus.badRequest);
+			return Json("Invalid game id: " ~ id.to!string);
+		}
+
+		auto game = games[id];
+		if (game.full)
+		{
+			status(HTTPStatus.badRequest);
+			return Json("Game is full");
+		}
+
+		auto player = game.addPlayer();
+		return player.serializeToJson;
 	}
 }
 
