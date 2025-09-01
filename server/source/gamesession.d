@@ -42,7 +42,12 @@ struct GameResponse
 	this(const GameState state, Nullable!PlayerID player = Nullable!PlayerID.init)
 	{
 		turn = state.turn;
-		playerResources = state.playerResources.dup;
+
+		if (player.isNull)
+			playerResources = state.playerResources.dup;
+		else
+			playerResources = [state.playerResources[player.get]];
+
 		lastInfluenceChange = state.lastInfluenceChange;
 
 		foreach(coords, terrain; state.staticMap)
