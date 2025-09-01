@@ -31,7 +31,6 @@ print(json.encode(state))
 
 for i,v in ipairs(g.players) do
 	print("View from player ", v.id)
-	print(v.token)
 	local state = req("game?id=%d&token=%s", g.id, v.token)
 	print(json.encode(state))
 end

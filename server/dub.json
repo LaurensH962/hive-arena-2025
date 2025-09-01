@@ -9,5 +9,6 @@
 	},
 	"description": "AI agent writing competition for the Hive Helsinki school",
 	"license": "proprietary",
-	"name": "server"
+	"name": "server",
+	"targetType": "executable"
 }
