@@ -99,8 +99,8 @@ class MoveOrder : TargetOrder
 		if (bee is null) return;
 		if (targetIsBlocked()) return;
 
-		state.entities.remove(coords);
-		state.entities[target] = bee;
+		state.hexes[coords].entity = null;
+		state.hexes[target].entity = bee;
 
 		status = Status.OK;
 	}
@@ -127,7 +127,7 @@ class AttackOrder : TargetOrder
 		entity.hp--;
 		if (entity.hp <= 0)
 		{
-			state.entities.remove(target);
+			state.hexes[target].entity = null;
 		}
 
 		status = Status.OK;
@@ -149,7 +149,7 @@ class BuildWallOrder : TargetOrder
 		if (!tryToPay(WALL_COST)) return;
 
 		auto wall = new Entity(Entity.Type.WALL, hp: INIT_WALL_HP, player: player);
-		state.entities[target] = wall;
+		state.hexes[target].entity = wall;
 
 		status = Status.OK;
 	}
@@ -167,13 +167,13 @@ class ForageOrder : Order
 		if (getUnit(Entity.Type.BEE) is null) return;
 
 		auto terrain = state.getTerrainAt(coords);
-		if (terrain != Terrain.FIELD || state.mapResources[coords] == 0)
+		if (terrain != Terrain.FIELD || state.hexes[coords].resources == 0)
 		{
 			status = Status.CANNOT_FORAGE;
 			return;
 		}
 
-		state.mapResources[coords]--;
+		state.hexes[coords].resources = state.hexes[coords].resources.get - 1;
 		state.playerResources[player]++;
 
 		status = Status.OK;
@@ -194,7 +194,7 @@ class BuildHiveOrder : Order
 		if (!tryToPay(HIVE_COST)) return;
 
 		auto hive = new Entity(Entity.Type.HIVE, hp: INIT_HIVE_HP, player: player);
-		state.entities[coords] = hive;
+		state.hexes[coords].entity = hive;
 
 		status = status.OK;
 	}
@@ -215,7 +215,7 @@ class SpawnOrder : TargetOrder
 		if (!tryToPay(BEE_COST)) return;
 
 		auto bee = new Entity(Entity.Type.BEE, hp: INIT_BEE_HP, player: player);
-		state.entities[target] = bee;
+		state.hexes[target].entity = bee;
 
 		status = status.OK;
 	}

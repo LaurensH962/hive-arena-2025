@@ -18,66 +18,6 @@ import terrain;
 alias GameID = uint;
 alias Token = string;
 
-struct GameResponse
-{
-	struct Cell
-	{
-		uint row, col;
-		@byName Terrain terrain;
-
-		Nullable!uint resources;
-		Nullable!PlayerID influence;
-		Nullable!Entity entity;
-	}
-
-	uint turn;
-
-	Cell[] map;
-	uint[] playerResources;
-	uint lastInfluenceChange;
-
-	PlayerID[] winners;
-	bool gameOver;
-
-	this(const GameState state, Nullable!PlayerID player = Nullable!PlayerID.init)
-	{
-		turn = state.turn;
-
-		if (player.isNull)
-			playerResources = state.playerResources.dup;
-		else
-			playerResources = [state.playerResources[player.get]];
-
-		lastInfluenceChange = state.lastInfluenceChange;
-
-		foreach(coords, terrain; state.staticMap)
-		{
-			if (!player.isNull && !state.isVisibleBy(coords, player.get))
-				continue;
-
-			auto cell = Cell(
-				coords.row,
-				coords.col,
-				terrain
-			);
-
-			if (terrain == Terrain.FIELD)
-				cell.resources = state.mapResources[coords];
-
-			if (coords in state.influence)
-				cell.influence = state.influence[coords];
-
-			if (coords in state.entities)
-				cell.entity = cast(Entity) state.entities[coords];
-
-			map ~= cell;
-		}
-
-		winners = state.winners.dup;
-		gameOver = state.gameOver;
-	}
-}
-
 class Player
 {
 	PlayerID id;
@@ -147,12 +87,12 @@ class GameSession
 
 	Json fullState()
 	{
-		return GameResponse(state).serializeToJson;
+		return state.serializeToJson;
 	}
 
 	Json playerView(Token token)
 	{
 		auto player = cast(PlayerID) playerTokens.countUntil(token);
-		return GameResponse(state, nullable(player)).serializeToJson;
+		return state.serializeToJson;
 	}
 }

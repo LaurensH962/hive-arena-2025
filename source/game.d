@@ -5,6 +5,8 @@ import std.random;
 import std.typecons;
 import std.range;
 
+import vibe.data.serialization;
+
 import terrain;
 import order;
 
@@ -23,9 +25,7 @@ const INFLUENCE_TIMEOUT = 50;
 alias PlayerID = uint;
 
 class Entity
-{
-	import vibe.data.serialization;
-	
+{	
 	enum Type
 	{
 		WALL,
@@ -45,18 +45,29 @@ class Entity
 	}
 }
 
+class Hex
+{
+	@byName Terrain terrain;
+
+	Nullable!uint resources;
+	Nullable!PlayerID influence;
+	Entity entity;
+	
+	this(Terrain terrain)
+	{
+		this.terrain = terrain;
+	}
+}
+
 class GameState
 {
-	const PlayerID numPlayers;
-	const Map staticMap;
+	PlayerID numPlayers;
+	Map staticMap;
 
 	uint turn;
-
+	
+	Hex[Coords] hexes;
 	uint[] playerResources;
-	uint[Coords] mapResources;
-	Entity[Coords] entities;
-
-	PlayerID[Coords] influence;
 	uint lastInfluenceChange;
 
 	PlayerID[] winners;
@@ -77,7 +88,7 @@ class GameState
 		return numPlayers >= 1 && numPlayers <= 6;
 	}
 
-	this(const MapData mapData, PlayerID numPlayers)
+	this(MapData mapData, PlayerID numPlayers)
 	{
 		this(mapData.map, mapData.spawns, numPlayers);
 	}
@@ -85,7 +96,9 @@ class GameState
 	this(const Map map, const Spawn[] spawns, PlayerID numPlayers)
 	{
 		this.numPlayers = numPlayers;
-		this.staticMap = map;
+
+		foreach (coords, terrain; map)
+			hexes[coords] = new Hex(terrain);
 
 		// Create units for existing players
 
@@ -98,21 +111,21 @@ class GameState
 			final switch (spawn.kind)
 			{
 				case Spawn.Kind.HIVE:
-					entities[spawn.coords] = new Entity(Entity.Type.HIVE, INIT_HIVE_HP, player);
+					hexes[spawn.coords].entity = new Entity(Entity.Type.HIVE, INIT_HIVE_HP, player);
 					break;
 
 				case Spawn.Kind.BEE:
-					entities[spawn.coords] = new Entity(Entity.Type.BEE, INIT_BEE_HP, player);
+					hexes[spawn.coords].entity = new Entity(Entity.Type.BEE, INIT_BEE_HP, player);
 					break;
 			}
 		}
 
 		// Prepare flower fields
 
-		foreach (coords, terrain; staticMap)
+		foreach (coords, hex; hexes)
 		{
-			if (terrain == Terrain.FIELD)
-				mapResources[coords] = INIT_FIELD_FLOWERS;
+			if (hex.terrain == Terrain.FIELD)
+				hex.resources = INIT_FIELD_FLOWERS;
 		}
 
 		// And player resources
@@ -127,12 +140,20 @@ class GameState
 
 	Entity getEntityAt(Coords coords)
 	{
-		return entities.get(coords, null);
+		return (coords in hexes) ? hexes[coords].entity : null;
 	}
 
 	Terrain getTerrainAt(Coords coords)
 	{
-		return staticMap.get(coords, Terrain.INVALID);
+		return (coords in hexes) ? hexes[coords].terrain : Terrain.INVALID;
+	}
+
+	auto entities() const
+	{
+		return hexes
+			.byKeyValue
+			.filter!(h => h.value.entity !is null)
+			.map!(pair => tuple!("coords", "entity")(pair.key, pair.value.entity));
 	}
 
 	Order[] processOrders(Order[][] orders)
@@ -175,23 +196,19 @@ class GameState
 
 	void updateInfluence()
 	{
-		auto previousInfluence = influence.dup;
-		influence.clear();
+		auto hives = entities
+			.filter!(pair => pair.entity.type == Entity.Type.HIVE).array;
 
-		auto hives = entities.byKeyValue
-			.filter!(pair => pair.value.type == Entity.Type.HIVE).array;
-
-		if (hives.length == 0)
-			return;
-
-		foreach(cell; staticMap.keys)
+		foreach(coords, hex; hexes)
 		{
 			auto minDist = uint.max;
 			bool[PlayerID] closestPlayers;
+			
+			auto previousInfluence = hex.influence;
 
 			foreach (hive; hives)
 			{
-				auto dist = cell.distance(hive.key);
+				auto dist = coords.distance(hive.coords);
 				if (dist > HIVE_FIELD_OF_VIEW)
 					continue;
 
@@ -203,16 +220,18 @@ class GameState
 
 				if (dist <= minDist)
 				{
-					closestPlayers[hive.value.player] = true;
+					closestPlayers[hive.entity.player] = true;
 				}
 			}
 
 			if (closestPlayers.length == 1)
-				influence[cell] = closestPlayers.keys[0];
+				hex.influence = closestPlayers.keys[0];
+			else
+				hex.influence.nullify;
+			
+			if (hex.influence != previousInfluence)
+				lastInfluenceChange = turn;
 		}
-
-		if (influence != previousInfluence)
-			lastInfluenceChange = turn;
 	}
 
 	void checkEndGame()
@@ -230,12 +249,14 @@ class GameState
 		auto influenceCounts = new uint[numPlayers];
 		auto hiveCounts = new uint[numPlayers];
 
-		foreach (cell, player; influence)
-			influenceCounts[player]++;
-
-		foreach (cell, entity; entities)
-		if (entity.type == Entity.Type.HIVE)
-			hiveCounts[entity.player]++;
+		foreach(coords, hex; hexes)
+		{
+			if (!hex.influence.isNull)
+				influenceCounts[hex.influence.get]++;
+			
+			if (hex.entity && hex.entity.type == Entity.Type.HIVE)
+				hiveCounts[hex.entity.player]++;
+		}
 
 		// If a single player has hives, they win
 
@@ -262,8 +283,7 @@ class GameState
 	bool isVisibleBy(Coords coords, PlayerID player) const
 	{
 		return entities
-			.byKeyValue
-			.filter!(e => e.value.player == player)
-			.any!(e => e.key.distance(coords) <= HIVE_FIELD_OF_VIEW);
+			.filter!(e => e.entity.player == player)
+			.any!(e => e.coords.distance(coords) <= HIVE_FIELD_OF_VIEW);
 	}
 }
