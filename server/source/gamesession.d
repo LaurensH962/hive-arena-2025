@@ -93,6 +93,6 @@ class GameSession
 	Json playerView(Token token)
 	{
 		auto player = cast(PlayerID) playerTokens.countUntil(token);
-		return state.serializeToJson;
+		return state.playerView(player).serializeToJson;
 	}
 }

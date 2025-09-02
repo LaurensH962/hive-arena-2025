@@ -62,7 +62,6 @@ class Hex
 class GameState
 {
 	PlayerID numPlayers;
-	Map staticMap;
 
 	uint turn;
 	
@@ -87,6 +86,8 @@ class GameState
 	{
 		return numPlayers >= 1 && numPlayers <= 6;
 	}
+
+	private this() {}
 
 	this(MapData mapData, PlayerID numPlayers)
 	{
@@ -270,7 +271,7 @@ class GameState
 		// Check if anyone has more than half the map influenced
 
 		auto maxInfluence = influenceCounts.maxElement;
-		if (maxInfluence <= staticMap.length / 2)
+		if (maxInfluence <= hexes.length / 2)
 			return;
 
 		foreach (PlayerID p; 0 .. numPlayers)
@@ -285,5 +286,25 @@ class GameState
 		return entities
 			.filter!(e => e.entity.player == player)
 			.any!(e => e.coords.distance(coords) <= HIVE_FIELD_OF_VIEW);
+	}
+	
+	GameState playerView(PlayerID player)
+	{
+		auto view = new GameState();
+		
+		view.numPlayers = numPlayers;
+	 	view.turn = turn;
+		
+		foreach(coords, hex; hexes)
+		if (isVisibleBy(coords, player))
+			view.hexes[coords] = hex;
+		
+		view.playerResources = [playerResources[player]];
+		view.lastInfluenceChange = lastInfluenceChange;
+
+		view.winners = winners;
+		view.gameOver = gameOver;
+		
+		return view;
 	}
 }
