@@ -48,7 +48,7 @@ struct Coords
 {
 	int row, col;
 
-	this(int row, int col)
+	this(int row, int col) @safe
 	{
 		if (!valid(row, col))
 			throw new Exception("Invalid coordinates");
@@ -57,7 +57,7 @@ struct Coords
 		this.col = col;
 	}
 
-	static bool valid(int row, int col)
+	static bool valid(int row, int col) @safe
 	{
 		return (row + col) % 2 == 0;
 	}
@@ -97,7 +97,7 @@ struct Coords
 		return format("%d,%d", row, col);
 	}
 
-	static Coords fromString(string s)
+	static Coords fromString(string s) @safe
 	{
 		auto parts = s.split(",");
 		return Coords(parts[0].to!int, parts[1].to!int);

@@ -1,0 +1,8 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"stdx-allocator": "2.77.5",
+		"vibe-container": "1.7.0",
+		"vibe-serialization": "1.1.2"
+	}
+}

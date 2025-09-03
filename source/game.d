@@ -23,16 +23,18 @@ alias PlayerID = uint;
 
 class Entity
 {	
-	enum Type
+	@byName enum Type
 	{
 		WALL,
 		HIVE,
 		BEE
 	}
 
-	@byName Type type;
+	Type type;
 	int hp;
 	PlayerID player;
+
+	this() @safe {}
 
 	this(Type type, int hp, PlayerID player)
 	{
@@ -48,7 +50,9 @@ class Hex
 
 	Nullable!uint resources;
 	Nullable!PlayerID influence;
-	Entity entity;
+	@optional Entity entity;
+	
+	this() @safe {} 
 	
 	this(Terrain terrain)
 	{
@@ -58,7 +62,7 @@ class Hex
 
 class Order
 {
-	enum Type
+	@byName enum Type
 	{
 		MOVE,
 		ATTACK,
@@ -68,7 +72,7 @@ class Order
 		SPAWN
 	}
 
-	enum Status
+	@byName enum Status
 	{
 		PENDING,
 		INVALID_UNIT,
@@ -83,9 +87,9 @@ class Order
 	Type type;
 	PlayerID player;
 	Coords coords;
-	Direction direction;
+	@optional Direction direction;
 
-	Status status;
+	@optional Status status;
 	
 	Entity.Type unitType()
 	{
@@ -129,7 +133,7 @@ class GameState
 		return numPlayers >= 1 && numPlayers <= 6;
 	}
 
-	private this() {}
+	this() @safe {}
 
 	this(MapData mapData, PlayerID numPlayers)
 	{

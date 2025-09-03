@@ -4,29 +4,34 @@ import std.getopt;
 import std.algorithm;
 import std.array;
 
+import vibe.data.json;
+
 import game;
 import terrain;
-import order;
-import serialization;
 
-void process(JSONValue data)
+struct ProcessInput
 {
-	auto game = deserializeGameState(data["gamestate"]);
+	GameState state;
+	Order[][] orders;
+}
 
-	if (data["orders"].array.length != game.numPlayers)
+struct ProcessOutput
+{
+	GameState state;
+	Order[] processed;
+}
+
+void process(Json data)
+{
+	auto input = data.deserializeJson!ProcessInput;
+
+	if (input.orders.length != input.state.numPlayers)
 		throw new Exception("Player count mismatch");
 
-	Order[][] orders;
-	foreach (Player p; 0 .. game.numPlayers)
-		orders ~= data["orders"][p].array.map!(o => deserializeOrder(o, p, game)).array;
+	auto processed = input.state.processOrders(input.orders);
 
-	auto processed = game.processOrders(orders);
-
-	JSONValue result;
-	result["gamestate"] = serialize(game);
-	result["processed"] = processed.map!(a => serialize(a)).array;
-
-	writeln(result);
+	auto output = ProcessOutput(input.state, processed);
+	writeln(output.serializeToJson);
 }
 
 void main(string[] args)
@@ -58,18 +63,18 @@ void main(string[] args)
 		auto map = loadMap(mapPath);
 		auto game = new GameState(map, players);
 
-		writeln(serialize(game));
+		writeln(game.serializeToJson);
 		return;
 	}
 
-	JSONValue data;
+	Json data;
 
 	if (toProcess.length != 0)
 	{
 		import std.file;
 
 		auto txt = readText(toProcess);
-		data = parseJSON(txt);
+		data = parseJsonString(txt);
 	}
 	else
 	{
@@ -78,7 +83,7 @@ void main(string[] args)
 			input ~= line;
 
 		string txt = input.join;
-		data = parseJSON(txt);
+		data = parseJsonString(txt);
 	}
 
 	try
@@ -88,7 +93,5 @@ void main(string[] args)
 	catch (Exception e)
 	{
 		stderr.writeln(e);
-		stderr.writeln(data);
 	}
-
 }

@@ -4,7 +4,8 @@
 	],
 	"copyright": "Copyright © 2025, Noé Falzon",
 	"dependencies": {
-		"arena": "*"
+		"arena": "*",
+		"vibe-serialization": "~>1.1.2"
 	},
 	"description": "AI agent writing competition for the Hive Helsinki school",
 	"license": "proprietary",
