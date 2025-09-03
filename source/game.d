@@ -115,7 +115,7 @@ class GameState
 	uint[] playerResources;
 	uint lastInfluenceChange;
 
-	PlayerID[] winners;
+	PlayerID[] winners = [-1];
 	bool gameOver;
 
 	private static const byte[][] playerMappings = [

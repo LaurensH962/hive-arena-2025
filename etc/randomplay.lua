@@ -21,17 +21,9 @@ local function printState(s)
 	io.write(runRaw("lua etc/gamestate_print.lua", json.encode(s)))
 end
 
-local function indexMap(state)
-	local index = {}
-	for _,v in ipairs(state.map) do
-		index[v.row .. ":" .. v.col] = v
-	end
-
-	for _,v in ipairs(state.entities) do
-		index[v.row .. ":" .. v.col].entity = v
-	end
-
-	return index
+local function parseCoords(c)
+	local row,col = c:match("(%d+),(%d+)")
+	return tonumber(row), tonumber(col)
 end
 
 local directions = {"NW", "NE", "E", "SE", "SW", "W"}
@@ -44,16 +36,17 @@ local directionOffsets = {
 	SE = {1, 1}
 }
 
-local function neighbour(cell, dir, index)
+local function neighbour(coords, dir)
 	local offset = directionOffsets[dir]
-	return index[(cell.row + offset[1]) .. ":" .. (cell.col + offset[2])]
+	local row, col = parseCoords(coords)
+	return (row + offset[1]) .. "," .. (col + offset[2])
 end
 
-local function findEnemyEntity(cell, index, player)
+local function findEnemyEntity(coords, hexes, player)
 
 	for _,dir in ipairs(directions) do
-		local n = neighbour(cell, dir, index)
-		if n and n.entity and n.entity.player ~= player then
+		local n = neighbour(coords, dir)
+		if hexes[n] and hexes[n].entity and hexes[n].entity.player ~= player then
 			return dir
 		end
 	end
@@ -63,40 +56,38 @@ local function makeOrders(state, player, index)
 
 	local orders = {}
 
-	for _,v in ipairs(state.entities) do
-		if v.type == "BEE" and v.player == player then
+	for coords,hex in pairs(state.hexes) do
+		local unit = hex.entity
+		if unit and unit.type == "BEE" and unit.player == player then
 
-			local cell = index[v.row .. ":" .. v.col]
-			local terrain = cell.type
-			local enemyDir = findEnemyEntity(cell, index, player)
+			local terrain = hex.terrain
+			local enemyDir = findEnemyEntity(coords, state.hexes, player)
 
 			local type = "MOVE"
 
 			if enemyDir then
 				type = "ATTACK"
-			elseif terrain == "FIELD" and cell.resources and cell.resources > 0 then
+			elseif terrain == "FIELD" and hex.resources and hex.resources > 0 then
 				type = "FORAGE"
-			elseif cell.influence ~= player and state.resources[player + 1] >= 24 then
+			elseif hex.influence ~= player and state.playerResources[player + 1] >= 24 then
 				type = "BUILD_HIVE"
 			elseif math.random() < 0.001 then
 				type = "BUILD_WALL"
 			end
 
 			local order = {
-				row = v.row,
-				col = v.col,
+				coords = coords,
 				type = type,
 				direction = enemyDir or directions[math.random(1, #directions)]
 			}
 
 			table.insert(orders, order)
 
-		elseif v.type == "HIVE" and v.player == player then
-			if state.resources[player + 1] >= 64 then
+		elseif unit and unit.type == "HIVE" and unit.player == player then
+			if state.playerResources[player + 1] >= 64 then
 
 				local order = {
-					row = v.row,
-					col = v.col,
+					coords = coords,
 					type = "SPAWN",
 					direction = directions[math.random(1, #directions)]
 				}
@@ -114,11 +105,9 @@ local function makeOrders(state, player, index)
 end
 
 local function runGame()
-	local state = run("cli/arena_cli --map=map.txt --players=4")
+	local state = run("cli/arena_cli --map=maps/balanced.txt --players=4")
 
 	while not state.gameOver do
-
-		local index = indexMap(state)
 
 		local porders = {}
 		for p = 0, state.numPlayers - 1 do
@@ -126,13 +115,13 @@ local function runGame()
 		end
 
 		local payload = {
-			gamestate = state,
+			state = state,
 			orders = porders
 		}
 
 		local result = run("cli/arena_cli", payload)
 
-		state = result.gamestate
+		state = result.state
 		print(json.encode(result.processed))
 		printState(state)
 	end
