@@ -13,15 +13,21 @@ local data = json.decode(txt)
 
 local top,bottom,left,right
 
-if not data.map then
-	data = data.gamestate
+if not data.hexes then
+	data = data.state
 end
 
-for i,v in ipairs(data.map) do
-	top = top and math.min(top, v.row) or v.row
-	bottom = bottom and math.max(bottom, v.row) or v.row
-	left = left and math.min(left, v.col) or v.col
-	right = right and math.max(right, v.col) or v.col
+local function parseCoords(c)
+	local row,col = c:match("(%d+),(%d+)")
+	return tonumber(row), tonumber(col)
+end
+
+for coords,v in pairs(data.hexes) do
+	local row, col = parseCoords(coords)
+	top = top and math.min(top, row) or row
+	bottom = bottom and math.max(bottom, row) or row
+	left = left and math.min(left, col) or col
+	right = right and math.max(right, col) or col
 end
 
 local lines = {}
@@ -43,18 +49,24 @@ local entityToChar = {
 
 local totalResources = 0
 
-for i,v in ipairs(data.map) do
-	local c = terrainToChar[v.type]
-	lines[v.row][v.col] = c
+for coords,hex in pairs(data.hexes) do
+	local c = terrainToChar[hex.terrain]
+	local row, col = parseCoords(coords)
+	lines[row][col] = c
 
-	if v.resources then
-		totalResources = totalResources + v.resources
+	if hex.resources then
+		totalResources = totalResources + hex.resources
 	end
 end
 
-for i,v in ipairs(data.entities) do
-	local c = entityToChar[v.type] .. v.player
-	lines[v.row][v.col] = c
+for coords,hex in pairs(data.hexes) do
+	local row, col = parseCoords(coords)
+	local entity = hex.entity
+
+	if entity then
+		local c = entityToChar[entity.type] .. entity.player
+		lines[row][col] = c
+	end
 end
 
 for row = top,bottom do
@@ -67,7 +79,7 @@ end
 
 print("Turn: ", data.turn)
 print("Last influence change: ", data.lastInfluenceChange)
-print("Resources: ", table.concat(data.resources, ", "))
+print("Resources: ", table.concat(data.playerResources, ", "))
 print("Resources left on map: ", totalResources)
 print("Game over:", data.gameOver)
 if (data.gameOver) then
