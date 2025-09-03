@@ -32,7 +32,7 @@ class Order
 
 	Entity getUnit(Entity.Type type)
 	{
-		auto unit = state.getEntityAt(coords);
+		auto unit = state.entityAt(coords);
 		if (unit is null || unit.type != type || unit.player != player)
 		{
 			status = Status.INVALID_UNIT;
@@ -73,8 +73,8 @@ class TargetOrder : Order
 
 	bool targetIsBlocked()
 	{
-		auto targetTerrain = state.getTerrainAt(target);
-		auto entity = state.getEntityAt(target);
+		auto targetTerrain = state.terrainAt(target);
+		auto entity = state.entityAt(target);
 
 		if (!targetTerrain.isWalkable || entity !is null)
 		{
@@ -117,7 +117,7 @@ class AttackOrder : TargetOrder
 	{
 		if (getUnit(Entity.Type.BEE) is null) return;
 
-		auto entity = state.getEntityAt(target);
+		auto entity = state.entityAt(target);
 		if (entity is null)
 		{
 			status = Status.INVALID_TARGET;
@@ -166,7 +166,7 @@ class ForageOrder : Order
 	{
 		if (getUnit(Entity.Type.BEE) is null) return;
 
-		auto terrain = state.getTerrainAt(coords);
+		auto terrain = state.terrainAt(coords);
 		if (terrain != Terrain.FIELD || state.hexes[coords].resources == 0)
 		{
 			status = Status.CANNOT_FORAGE;

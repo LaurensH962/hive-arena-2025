@@ -137,13 +137,13 @@ class GameState
 		checkEndGame();
 	}
 
-	Entity getEntityAt(Coords coords)
+	Entity entityAt(Coords coords)
 	{
 		auto hex = coords in hexes;
 		return hex ? hex.entity : null;
 	}
 
-	Terrain getTerrainAt(Coords coords)
+	Terrain terrainAt(Coords coords)
 	{
 		auto hex = coords in hexes;
 		return hex ? hex.terrain : Terrain.INVALID;
@@ -175,7 +175,7 @@ class GameState
 		{
 			foreach (order; round.array.randomShuffle)
 			{
-				auto unit = getEntityAt(order.coords);
+				auto unit = entityAt(order.coords);
 				if (unit in acted)
 				{
 					order.status = Order.Status.UNIT_ALREADY_ACTED;
