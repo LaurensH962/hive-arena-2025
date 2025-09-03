@@ -92,7 +92,7 @@ class GameState
 		this(mapData.map, mapData.spawns, numPlayers);
 	}
 
-	this(const Map map, const Spawn[] spawns, PlayerID numPlayers)
+	this(const Terrain[Coords] map, const Spawn[] spawns, PlayerID numPlayers)
 	{
 		this.numPlayers = numPlayers;
 

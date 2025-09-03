@@ -94,12 +94,12 @@ struct Coords
 	string toString() const @safe
 	{
 		import std.format;
-		return format("%d:%d", row, col);
+		return format("%d,%d", row, col);
 	}
 
 	static Coords fromString(string s)
 	{
-		auto parts = s.split(":");
+		auto parts = s.split(",");
 		return Coords(parts[0].to!int, parts[1].to!int);
 	}
 }
@@ -115,21 +115,10 @@ private const charToSpawn = [
 	'B': Spawn.Kind.BEE
 ];
 
-char terrainToChar(Terrain kind)
-{
-	foreach (k, v; charToTerrain)
-	if (v == kind)
-		return k;
-
-	return ' ';
-}
-
-alias Map = Terrain[Coords];
-
 struct MapData
 {
 	string name;
-	Map map;
+	Terrain[Coords] map;
 	Spawn[] spawns;
 }
 
@@ -137,7 +126,7 @@ MapData loadMap(string path)
 {
 	import std.stdio;
 
-	Map map;
+	Terrain[Coords] map;
 	Spawn[] spawns;
 
 	foreach (int trow, string line; File(path, "r").lines)
