@@ -3,7 +3,6 @@ import std.array;
 import std.file;
 import std.random;
 import std.regex;
-import std.stdio;
 
 import vibe.vibe;
 
@@ -123,7 +122,8 @@ class Server
 
 	Json getJoin(GameID id, string name)
 	{
-		if (id !in games)
+		auto game = id in games;
+		if (!game)
 		{
 			status(HTTPStatus.badRequest);
 			return Json("Invalid game id: " ~ id.to!string);
@@ -135,7 +135,6 @@ class Server
 			return Json("Invalid name");
 		}
 
-		auto game = games[id];
 		if (game.full)
 		{
 			status(HTTPStatus.badRequest);
@@ -150,13 +149,13 @@ class Server
 
 	Json getGame(GameID id, Token token)
 	{
-		if (id !in games)
+		auto game = id in games;
+		if (!game)
 		{
 			status(HTTPStatus.badRequest);
 			return Json("Invalid game id: " ~ id.to!string);
 		}
 
-		auto game = games[id];
 		if (!game.full)
 		{
 			status(HTTPStatus.badRequest);

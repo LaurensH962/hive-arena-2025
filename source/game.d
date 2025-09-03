@@ -139,12 +139,14 @@ class GameState
 
 	Entity getEntityAt(Coords coords)
 	{
-		return (coords in hexes) ? hexes[coords].entity : null;
+		auto hex = coords in hexes;
+		return hex ? hex.entity : null;
 	}
 
 	Terrain getTerrainAt(Coords coords)
 	{
-		return (coords in hexes) ? hexes[coords].terrain : Terrain.INVALID;
+		auto hex = coords in hexes;
+		return hex ? hex.terrain : Terrain.INVALID;
 	}
 
 	auto entities() const

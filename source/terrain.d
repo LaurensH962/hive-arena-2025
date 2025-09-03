@@ -148,15 +148,15 @@ MapData loadMap(string path)
 
 		auto coords = Coords(trow, tcol.to!int / 2);
 
-		if (c in charToTerrain)
+		if (auto terrain = c in charToTerrain)
 		{
-			map[coords] = charToTerrain[c];
+			map[coords] = *terrain;
 		}
-		else if (c in charToSpawn)
+		else if (auto kind = c in charToSpawn)
 		{
 			auto player = line[tcol + 1].to!string.to!ubyte;
 
-			spawns ~= Spawn(charToSpawn[c], player, coords);
+			spawns ~= Spawn(*kind, player, coords);
 			map[coords] = Terrain.EMPTY;
 		}
 	}
