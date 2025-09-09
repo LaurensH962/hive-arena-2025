@@ -11,6 +11,7 @@ import terrain;
 import gamesession;
 
 const MAP_DIR = "maps";
+const GAME_START_TIMEOUT = 5.minutes;
 
 class Server
 {
@@ -74,7 +75,7 @@ class Server
 		games[id] = game;
 
 		logInfo("Created game %d (%s, %d players)", id, map, players);
-		setTimer(5.minutes, () => removeIfNotStarted(id));
+		setTimer(GAME_START_TIMEOUT, () => removeIfNotStarted(id));
 
 		return NewGameResponse(
 			id: game.id,

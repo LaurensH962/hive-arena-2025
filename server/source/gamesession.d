@@ -6,6 +6,8 @@ import vibe.vibe;
 import game;
 import terrain;
 
+const TURN_TIMEOUT = 5.seconds;
+
 alias GameID = uint;
 alias Token = string;
 
@@ -91,6 +93,8 @@ class GameSession
 	{
 		pendingOrders = new Order[][state.numPlayers];
 		playedTurn = new bool[state.numPlayers];
+
+		setTimer(TURN_TIMEOUT, () => timeoutTurn(state.turn));
 	}
 
 	Json fullState()
@@ -114,9 +118,18 @@ class GameSession
 			processTurn();
 	}
 
+	private void timeoutTurn(uint turn)
+	{
+		if (state.turn == turn)
+			processTurn();
+	}
+
 	private void processTurn()
 	{
-		logInfo("Processing orders for game %d", id);
+		if (state.gameOver)
+			return;
+
+		logInfo("Processing orders for game %d, turn %d", id, state.turn);
 
 		auto results = state.processOrders(pendingOrders);
 		orderHistory ~= results;
