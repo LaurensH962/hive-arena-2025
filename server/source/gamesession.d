@@ -37,6 +37,8 @@ class GameSession
 
 	Order[][] orderHistory;
 
+	WebSocket[] sockets;
+
 	static Token[] generateTokens(int count)
 	{
 		bool[Token] tokens;
@@ -126,6 +128,12 @@ class GameSession
 			processTurn();
 	}
 
+	struct WebSocketMessage
+	{
+		uint turn;
+		bool gameOver;
+	}
+
 	private void processTurn()
 	{
 		if (state.gameOver)
@@ -135,6 +143,10 @@ class GameSession
 
 		auto results = state.processOrders(pendingOrders);
 		orderHistory ~= results;
+
+		foreach (socket; sockets)
+			if (socket.connected)
+				socket.send(WebSocketMessage(state.turn, state.gameOver).serializeToJsonString);
 
 		if (!state.gameOver)
 			startTurn();

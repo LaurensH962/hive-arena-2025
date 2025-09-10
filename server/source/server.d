@@ -30,6 +30,7 @@ class Server
 		auto router = new URLRouter;
 		router.registerWebInterface(this);
 		router.get("/history/*", serveStaticFiles(HISTORY_DIR ~ "/", fsettings));
+		router.get("/ws", &startWebsocket);
 
 		auto settings = new HTTPServerSettings();
 		settings.port = port;
@@ -270,6 +271,31 @@ class Server
 			.map!(e => e.name)
 			.array
 			.serializeToJson;
+	}
+
+	private void startWebsocket(HTTPServerRequest req, HTTPServerResponse res)
+	{
+		auto id = req.query["id"].to!GameID;
+
+		auto game = id in games;
+		if (!game)
+		{
+			res.writeBody("Invalid game id: " ~ id.to!string);
+			res.statusCode = HTTPStatus.badRequest;
+			return;
+		}
+
+		handleWebSocket((scope WebSocket socket)
+		{
+			game.sockets ~= socket;
+
+			while (socket.waitForData)
+				auto text = socket.receiveText;
+
+			socket.close();
+			game.sockets = game.sockets.remove!(s => s == socket);
+
+		}, req, res);
 	}
 }
 
