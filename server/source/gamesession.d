@@ -84,12 +84,6 @@ class GameSession
 
 		players ~= player;
 
-		if (full)
-		{
-			logInfo("Game %d started", id);
-			startNextTurn();
-		}
-
 		return player;
 	}
 
@@ -104,7 +98,7 @@ class GameSession
 		bool gameOver;
 	}
 
-	private void startNextTurn()
+	void startNextTurn()
 	{
 		pendingOrders = new Order[][state.numPlayers];
 		playedTurn = new bool[state.numPlayers];

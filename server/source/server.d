@@ -168,6 +168,14 @@ class Server
 		auto player = game.addPlayer(name);
 		logInfo("Player %s joined game %d (#%d)", player.name, game.id, player.id);
 
+		if (game.full)
+		{
+			setTimer(1.seconds, () {
+				logInfo("Game %d started", id);
+				game.startNextTurn();
+			});
+		}
+
 		return JoinResponse(player.id, player.token).serializeToJson;
 	}
 
