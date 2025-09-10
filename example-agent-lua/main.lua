@@ -1,4 +1,6 @@
 local arena = require "arena"
+local utils = require "utils"
+
 local args = {...}
 
 local host = args[1]
@@ -10,6 +12,8 @@ if not host or not gameid or not name then
 end
 
 local function callback(state, player)
+
+	utils.printState(state)
 
 	return {[0] = 0}
 end
