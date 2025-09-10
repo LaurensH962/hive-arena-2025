@@ -1,5 +1,6 @@
 local http = require "http.request"
 local httph = require "http.headers"
+local ws = require "http.websocket"
 local json = require "lunajson"
 
 local host = "http://localhost:8000/"
@@ -57,7 +58,7 @@ print("Admin view")
 local state = req("game?id=%d&token=%s", g.id, g.adminToken)
 print(json.encode(state))
 
-while "trouducul" do
+while false do
 
 	for i,player in ipairs(g.players) do
 		print("View from player ", player.id)
