@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	"encoding/json"
-	"os"
-	"io"
-	"strconv"
+	"fmt"
 	"github.com/gorilla/websocket"
+	"io"
+	"net/http"
+	"os"
+	"strconv"
 )
 
 func request(url string) string {
@@ -31,7 +31,7 @@ func request(url string) string {
 }
 
 type JoinResponse struct {
-	Id uint
+	Id    uint
 	Token string
 }
 
@@ -47,7 +47,7 @@ func joinGame(host string, id uint, name string) JoinResponse {
 }
 
 type Message struct {
-	Turn uint
+	Turn     uint
 	GameOver bool
 }
 
@@ -66,26 +66,26 @@ func startWebSocket(host string, id uint) *websocket.Conn {
 }
 
 type Entity struct {
-	Type string
-	Hp uint
+	Type   string
+	Hp     uint
 	Player uint
 }
 
 type Hex struct {
-	Terrain string
+	Terrain   string
 	Resources uint
 	Influence uint
-	Entity *Entity
+	Entity    *Entity
 }
 
 type GameState struct {
-	NumPlayers uint
-	Turn uint
-	Hexes map[string]Hex
-	PlayerResources []uint
+	NumPlayers          uint
+	Turn                uint
+	Hexes               map[string]Hex
+	PlayerResources     []uint
 	lastInfluenceChange uint
-	Winners map[uint]bool
-	GameOver bool
+	Winners             map[uint]bool
+	GameOver            bool
 }
 
 func getState(host string, id uint, token string) GameState {
