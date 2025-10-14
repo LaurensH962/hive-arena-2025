@@ -9,19 +9,19 @@ import (
 
 const (
 	INIT_FIELD_FLOWERS = 60
-	BEE_COST  = 12
-	HIVE_COST = 24
-	WALL_COST = 6
-	WALL_ATTACK_CHANCE = 1.0/6.0
-	STUN_CHANCE = 1.0/2.0
+	BEE_COST           = 12
+	HIVE_COST          = 24
+	WALL_COST          = 6
+	WALL_ATTACK_CHANCE = 1.0 / 6.0
+	STUN_CHANCE        = 1.0 / 2.0
 	HIVE_FIELD_OF_VIEW = 4
-	RESOURCE_TIMEOUT  = 50
+	RESOURCE_TIMEOUT   = 50
 )
 
 type Entity struct {
-	Type   EntityType `json:"type"`
-	Player int        `json:"player"`
-	HasFlower bool		`jons:"hasFlower,omitzero"`
+	Type      EntityType `json:"type"`
+	Player    int        `json:"player"`
+	HasFlower bool       `jons:"hasFlower,omitzero"`
 }
 
 type EntityType string
@@ -33,9 +33,9 @@ const (
 )
 
 type Hex struct {
-	Terrain   Terrain   `json:"terrain"`
-	Resources uint      `json:"resources,omitzero"`
-	Entity    *Entity   `json:"entity,omitempty"`
+	Terrain   Terrain `json:"terrain"`
+	Resources uint    `json:"resources,omitzero"`
+	Entity    *Entity `json:"entity,omitempty"`
 }
 
 type Order struct {
@@ -67,7 +67,7 @@ const (
 	CANNOT_FORAGE        OrderStatus = "CANNOT_FORAGE"
 	NOT_ENOUGH_RESOURCES OrderStatus = "NOT_ENOUGH_RESOURCES"
 	UNIT_ALREADY_ACTED   OrderStatus = "UNIT_ALREADY_ACTED"
-	UNIT_STUNNED 		OrderStatus = "UNIT_STUNNED"
+	UNIT_STUNNED         OrderStatus = "UNIT_STUNNED"
 	OK                   OrderStatus = "OK"
 )
 
@@ -83,10 +83,10 @@ func (o *Order) Target() Coords {
 }
 
 type GameState struct {
-	NumPlayers          int             `json:"numPlayers"`
-	Turn                uint            `json:"turn"`
-	Hexes               map[Coords]*Hex `json:"hexes"`
-	PlayerResources     []uint          `json:"playerResources"`
+	NumPlayers         int             `json:"numPlayers"`
+	Turn               uint            `json:"turn"`
+	Hexes              map[Coords]*Hex `json:"hexes"`
+	PlayerResources    []uint          `json:"playerResources"`
 	LastResourceChange uint            `json:"lastResourceChange"`
 
 	Winners  []int `json:"winners,omitempty"`
@@ -351,7 +351,7 @@ func (gs *GameState) applyForageOrder(order *Order) {
 
 	if bee.HasFlower {
 
-		for _,n := range order.Coords.Neighbours() {
+		for _, n := range order.Coords.Neighbours() {
 			entity := gs.EntityAt(n)
 			if entity != nil && entity.Type == HIVE && entity.Player == bee.Player {
 				bee.HasFlower = false
@@ -456,12 +456,12 @@ func (gs *GameState) isVisibleBy(coords Coords, player int) bool {
 
 func (gs *GameState) PlayerView(player int) *GameState {
 	view := &GameState{
-		NumPlayers:          gs.NumPlayers,
-		Turn:                gs.Turn,
-		Hexes:               make(map[Coords]*Hex),
+		NumPlayers:         gs.NumPlayers,
+		Turn:               gs.Turn,
+		Hexes:              make(map[Coords]*Hex),
 		LastResourceChange: gs.LastResourceChange,
-		Winners:             gs.Winners,
-		GameOver:            gs.GameOver,
+		Winners:            gs.Winners,
+		GameOver:           gs.GameOver,
 	}
 
 	for coords, hex := range gs.Hexes {
