@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	INIT_FIELD_FLOWERS = 60
-	BEE_COST           = 12
-	HIVE_COST          = 24
-	WALL_COST          = 6
+	INIT_FIELD_FLOWERS = 8
+	BEE_COST           = 6
+	HIVE_COST          = 12
+	WALL_COST          = 1
 	WALL_ATTACK_CHANCE = 1.0 / 6.0
 	STUN_CHANCE        = 1.0 / 2.0
-	HIVE_FIELD_OF_VIEW = 4
+	FIELD_OF_VIEW      = 4
 	RESOURCE_TIMEOUT   = 50
 )
 
@@ -447,7 +447,7 @@ func (gs *GameState) isVisibleBy(coords Coords, player int) bool {
 	for hcoords, hex := range gs.Hexes {
 		if hex.Entity != nil &&
 			hex.Entity.Player == player &&
-			hcoords.Distance(coords) <= HIVE_FIELD_OF_VIEW {
+			hcoords.Distance(coords) <= FIELD_OF_VIEW {
 			return true
 		}
 	}
