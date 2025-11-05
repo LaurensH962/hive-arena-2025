@@ -22,6 +22,11 @@ type Player struct {
 	Token string
 }
 
+type Turn struct {
+	Orders []*Order
+	State  *GameState
+}
+
 type GameSession struct {
 	mutex sync.Mutex
 
@@ -34,7 +39,7 @@ type GameSession struct {
 	State        *GameState
 
 	PendingOrders [][]*Order
-	History       [][]*Order
+	History       []Turn
 
 	Sockets []*websocket.Conn
 }
@@ -157,7 +162,7 @@ func (game *GameSession) processTurn() {
 	log.Printf("Processing orders for game %s, turn %d", game.ID, game.State.Turn)
 
 	results, _ := game.State.ProcessOrders(game.PendingOrders)
-	game.History = append(game.History, results)
+	game.History = append(game.History, Turn{results, game.State.Clone()})
 
 	game.BeginTurn()
 }
