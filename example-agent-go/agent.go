@@ -38,7 +38,7 @@ type JoinResponse struct {
 }
 
 type WebSocketMessage struct {
-	Turn     int
+	Turn     uint
 	GameOver bool
 }
 
@@ -104,6 +104,17 @@ func Run(host string, id string, name string, callback func(*GameState, int) []O
 
 	playerInfo := joinGame(host, id, name)
 	ws := startWebSocket(host, id)
+	currentTurn := uint(0)
+
+	run := func() {
+		state := getState(host, id, playerInfo.Token)
+		currentTurn = state.Turn
+
+		orders := callback(&state, playerInfo.Id)
+		sendOrders(host, id, playerInfo.Token, orders)
+	}
+
+	run()
 
 	for {
 		var message WebSocketMessage
@@ -116,13 +127,9 @@ func Run(host string, id string, name string, callback func(*GameState, int) []O
 		if message.GameOver {
 			fmt.Println("Game is over")
 			break
-		} else {
+		} else if message.Turn > currentTurn {
 			fmt.Printf("Starting turn %d\n", message.Turn)
+			run()
 		}
-
-		state := getState(host, id, playerInfo.Token)
-		orders := callback(&state, playerInfo.Id)
-
-		sendOrders(host, id, playerInfo.Token, orders)
 	}
 }
