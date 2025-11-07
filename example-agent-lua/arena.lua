@@ -64,7 +64,7 @@ local function openWebSocket(host, gameid)
 
 	local ws = require "http.websocket"
 
-	local socket = ws.new_from_uri(host .. "/ws?id=" .. gameid)
+	local socket = ws.new_from_uri("ws://" .. host .. "/ws?id=" .. gameid)
 	socket:connect()
 
 	return socket
