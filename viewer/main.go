@@ -105,7 +105,12 @@ func (viewer *Viewer) DrawState(screen *ebiten.Image) {
 	for _, hex := range hexes {
 		opt := ebiten.DrawImageOptions{}
 		opt.GeoM = viewer.CoordsToTransform(hex.Coords)
-		screen.DrawImage(TerrainTiles[hex.Hex.Terrain], &opt)
+
+		if hex.Hex.Terrain == FIELD && hex.Hex.Resources == 0 {
+			screen.DrawImage(EmptyFieldTile, &opt)
+		} else {
+			screen.DrawImage(TerrainTiles[hex.Hex.Terrain], &opt)
+		}
 	}
 
 	for _, hex := range hexes {
