@@ -11,6 +11,11 @@ import (
 
 import . "hive-arena/common"
 
+type WebSocketMessage struct {
+	Turn     int
+	GameOver bool
+}
+
 func parseJSON(bytes []byte) *PersistedGame {
 	var game PersistedGame
 	err := json.Unmarshal(bytes, &game)
@@ -55,12 +60,11 @@ func GetFile(path string) *PersistedGame {
 	return parseJSON(bytes)
 }
 
-func request(url string) string {
+func request(url string) (string, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println("Could not get " + url)
-		os.Exit(1)
+		return "", err
 	}
 	defer resp.Body.Close()
 
@@ -68,34 +72,65 @@ func request(url string) string {
 	body := string(bodyBytes)
 
 	if resp.StatusCode != 200 {
-		fmt.Println("Error:", body)
-		os.Exit(1)
+		return body, fmt.Errorf("Status code %d", resp.StatusCode)
 	}
 
-	return body
+	return body, nil
 }
 
-func startWebSocket(host string, id string) *websocket.Conn {
+func getState(host string, id string, token string) *GameState {
 
-	url := "ws://" + host + fmt.Sprintf("/ws?id=%s", id)
-
-	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
+	url := fmt.Sprintf("http://%s/game?id=%s&token=%s", host, id, token)
+	body, err := request(url)
 
 	if err != nil {
-		fmt.Println("Websocket error: ", err)
-		os.Exit(1)
+		fmt.Println(err, body)
+		return nil
 	}
-
-	return ws
-}
-
-func getState(host string, id string, token string) GameState {
-
-	url := "http://" + host + fmt.Sprintf("/game?id=%s&token=%s", id, token)
-	body := request(url)
 
 	var response GameState
 	json.Unmarshal([]byte(body), &response)
 
-	return response
+	return &response
+}
+
+type LiveGame struct {
+	Host, Id, Token string
+	Channel chan int
+}
+
+func StartLiveWatch(host string, gameId string, token string) (*PersistedGame, *LiveGame) {
+
+	url := fmt.Sprintf("ws://%s/ws?id=%s", host, gameId)
+	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
+	if ws == nil {
+		fmt.Printf("Could not get websocket for %s on %s\n", gameId, host)
+		fmt.Println(err)
+		return nil, nil
+	}
+
+	liveChannel := make(chan int)
+
+	updateGame := func() {
+		for {
+			var message WebSocketMessage
+			err := ws.ReadJSON(&message)
+			if err != nil {
+				fmt.Println("Websocket error:", err)
+				return
+			}
+
+			if message.GameOver {
+				fmt.Println("Game is over")
+				break
+			} else {
+				fmt.Printf("Starting turn %d\n", message.Turn)
+				liveChannel <- message.Turn
+			}
+		}
+	}
+
+	go updateGame()
+
+	return &PersistedGame {Id: gameId}, &LiveGame{host, gameId, token, liveChannel}
 }

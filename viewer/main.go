@@ -30,6 +30,8 @@ type Viewer struct {
 
 	Cx, Cy float64
 	Scale  float64
+
+	Live 	*LiveGame
 }
 
 func (viewer *Viewer) Update() error {
@@ -64,6 +66,22 @@ func (viewer *Viewer) Update() error {
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
 		viewer.Turn = len(viewer.Game.History) - 1
+	}
+
+	if viewer.Live != nil {
+		select {
+			case turn := <-viewer.Live.Channel:
+				fmt.Printf("Turn %d\n", turn)
+
+				state := getState(viewer.Live.Host, viewer.Live.Id, viewer.Live.Token)
+				if state != nil {
+					viewer.Game.History = append(viewer.Game.History, Turn{nil, state})
+					if viewer.Turn == len(viewer.Game.History) - 2 {
+						viewer.Turn++
+					}
+				}
+			default:
+		}
 	}
 
 	return nil
@@ -136,7 +154,12 @@ func (viewer *Viewer) DrawState(screen *ebiten.Image) {
 }
 
 func (viewer *Viewer) Draw(screen *ebiten.Image) {
-	viewer.DrawState(screen)
+	if len(viewer.Game.History) > 0 {
+		viewer.DrawState(screen)
+	} else {
+		txt := fmt.Sprintf("%s has not started yet", viewer.Game.Id)
+		ebitenutil.DebugPrint(screen, txt)
+	}
 }
 
 func (viewer *Viewer) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -157,13 +180,20 @@ func CenterTile(state *GameState) (int, int) {
 func main() {
 	url := flag.String("url", "", "URL of the history file to view")
 	file := flag.String("file", "", "path to the history file to view")
+	host := flag.String("host", "", "host for the live game to watch")
+	gameId := flag.String("id", "", "ID of the live game to watch")
+	token := flag.String("token", "", "access token for the live game to watch")
 	flag.Parse()
 
 	var game *PersistedGame
+	var live *LiveGame
 	if *url != "" {
 		game = GetURL(*url)
 	} else if *file != "" {
 		game = GetFile(*file)
+	} else if *host != "" && *gameId != "" && *token != "" {
+		game, live = StartLiveWatch(*host, *gameId, *token)
+
 	} else {
 		flag.PrintDefaults()
 		return
@@ -172,7 +202,11 @@ func main() {
 	if game == nil {
 		return
 	}
-	cx, cy := CenterTile(game.History[0].State)
+
+	var cx, cy int
+	if len(game.History) > 0 {
+		cx, cy = CenterTile(game.History[0].State)
+	}
 
 	LoadResources()
 
@@ -185,6 +219,7 @@ func main() {
 		Cx:    float64(cx),
 		Cy:    float64(cy),
 		Scale: 1.0,
+		Live: live,
 	}
 	err := ebiten.RunGame(viewer)
 
