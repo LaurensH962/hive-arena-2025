@@ -99,13 +99,13 @@ func (viewer *Viewer) DrawState(screen *ebiten.Image, state *GameState) {
 
 	for _, hex := range hexes {
 		entity := hex.Hex.Entity
-		if entity == nil || entity.Type != BEE {
+		if entity == nil || entity.Type == WALL {
 			continue
 		}
 
 		opt := ebiten.DrawImageOptions{}
 		opt.GeoM = viewer.CoordsToTransform(hex.Coords)
-		opt.GeoM.Translate(0, -Dy*0.75)
+		opt.GeoM.Translate(0, -Dy*0.75*viewer.Scale)
 		opt.ColorScale.ScaleWithColor(PlayerColors[entity.Player])
 		screen.DrawImage(EntityTiles[entity.Type], &opt)
 	}

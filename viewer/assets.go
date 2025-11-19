@@ -20,4 +20,5 @@ func LoadResources() {
 	EntityTiles = make(map[EntityType]*ebiten.Image)
 
 	EntityTiles[BEE], _, _ = ebitenutil.NewImageFromFile("bee.png")
+	EntityTiles[HIVE], _, _ = ebitenutil.NewImageFromFile("hive.png")
 }
