@@ -11,6 +11,7 @@ import _ "embed"
 
 var TerrainTiles map[Terrain]*ebiten.Image
 var EmptyFieldTile *ebiten.Image
+var FlowerImage *ebiten.Image
 
 var EntityTiles map[EntityType]*ebiten.Image
 var EntityOffset = map[EntityType]float64{
@@ -34,6 +35,8 @@ var SpriteBee []byte
 var SpriteHive []byte
 //go:embed wall.png
 var SpriteWall []byte
+//go:embed flower.png
+var SpriteFlower []byte
 
 func loadImage(data []byte) *ebiten.Image {
 	img, _, _ := image.Decode(bytes.NewReader(data))
@@ -53,4 +56,6 @@ func LoadResources() {
 	EntityTiles[BEE] = loadImage(SpriteBee)
 	EntityTiles[HIVE] = loadImage(SpriteHive)
 	EntityTiles[WALL] = loadImage(SpriteWall)
+	EntityTiles[WALL] = loadImage(SpriteWall)
+	FlowerImage = loadImage(SpriteFlower)
 }

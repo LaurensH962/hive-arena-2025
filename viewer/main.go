@@ -139,6 +139,11 @@ func (viewer *Viewer) DrawState(screen *ebiten.Image) {
 		opt.GeoM.Translate(0, -EntityOffset[entity.Type]*viewer.Scale)
 		opt.ColorScale.ScaleWithColor(PlayerColors[entity.Player])
 		screen.DrawImage(EntityTiles[entity.Type], &opt)
+
+		if entity.HasFlower {
+			opt.ColorScale.Reset()
+			screen.DrawImage(FlowerImage, &opt)
+		}
 	}
 
 	txt := fmt.Sprintf("%s (%s) %v\nTurn: %d\nPlayers: %v\nResources: %v\nGame over: %v",
