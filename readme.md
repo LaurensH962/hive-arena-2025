@@ -2,6 +2,8 @@
 
 A friendly AI competition for the Hive students!
 
+![Screenshot](docs/arena-viewer.png)
+
 ## Running the arena
 
 - Install the Go compiler (for instance `brew install go` on MacOS, or `apt install golang-go` or `snap install go` on Ubuntu, or follow instructions from the official website).
