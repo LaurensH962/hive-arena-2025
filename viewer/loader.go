@@ -119,13 +119,9 @@ func StartLiveWatch(host string, gameId string, token string) (*PersistedGame, *
 				fmt.Println("Websocket error:", err)
 				return
 			}
-
+			liveChannel <- message.Turn
 			if message.GameOver {
-				fmt.Println("Game is over")
 				break
-			} else {
-				fmt.Printf("Starting turn %d\n", message.Turn)
-				liveChannel <- message.Turn
 			}
 		}
 	}
