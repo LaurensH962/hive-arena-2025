@@ -1,11 +1,11 @@
-x   x   x   H1  B1  R   R   B2  H2
-  x   x   B1  .   .   F   .   .   B2
-x   x   R   .   F   F   F   F   .   R
-  x   R   F   F   F   F   F   F   F   R
-x   B0  .   F   F   F   R   F   F   .   B3  
+            H1  B1  R   R   B2  H2
+          B1  .   .   F   .   .   B2
+        R   .   F   F   F   F   .   R
+      R   F   F   F   F   F   F   F   R
+    B0  .   F   F   F   R   F   F   .   B3
   H0  .   F   F   R   R   F   F   F   .   H3
-x   B0  .   F   F   F   R   F   F   .   B3
-  x   R   F   F   F   F   F   F   F   R
-x   x   R   .   F   F   F   F   .   R
-  x   x   B5  .   .   F   .   .   B4
-x   x   x   H5  B5  R   R   B4  H4
+    B0  .   F   F   F   R   F   F   .   B3
+      R   F   F   F   F   F   F   F   R
+        R   .   F   F   F   F   .   R
+          B5  .   .   F   .   .   B4
+            H5  B5  R   R   B4  H4

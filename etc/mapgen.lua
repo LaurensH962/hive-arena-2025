@@ -20,7 +20,7 @@ local function genHex(w)
 			io.write "  "
 		end
 
-		io.write(string.rep("x   ", (offset + 1 - w % 2) // 2))
+		io.write(string.rep("    ", (offset + 1 - w % 2) // 2))
 		io.write(string.rep(".   ", 2 * w - 1 - offset))
 
 		io.write "\n"
