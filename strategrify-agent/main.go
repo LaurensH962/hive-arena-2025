@@ -14,6 +14,8 @@ func think(state *GameState, player int) []Order {
 
 	var orders []Order
 
+	// check GameState.NumPlayers & select strategy based on that
+
 	for coords, hex := range state.Hexes {
 		unit := hex.Entity
 
