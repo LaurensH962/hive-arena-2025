@@ -68,7 +68,7 @@ local function printState(state)
 	print("Resources left on map: ", totalResources)
 	print("Game over:", state.gameOver)
 	if (state.gameOver) then
-		print("Winners:", json.encode(state.winners))
+		print("Winners:", table.concat(state.winners, ", "))
 	end
 
 end
