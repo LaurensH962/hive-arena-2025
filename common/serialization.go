@@ -49,3 +49,12 @@ type Turn struct {
 	Orders []*Order   `json:"orders,omitempty"`
 	State  *GameState `json:"state"`
 }
+
+type SessionStatus struct {
+	Id          string
+	CreatedDate time.Time
+	Map         string
+	NumPlayers  int
+	Players     []string
+	GameOver    bool
+}
