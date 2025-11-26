@@ -2,34 +2,19 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
+	//"math/rand"
 	"os"
 
 	. "hive-arena/common"
 )
 
-var dirs = []Direction{E, SE, SW, W, NW, NE}
+//var dirs = []Direction{E, NE, SW, W, NW, NE}
 
 func think(state *GameState, player int) []Order {
 
-	var orders []Order
-
-	// check GameState.NumPlayers & select strategy based on that
-
-	for coords, hex := range state.Hexes {
-		unit := hex.Entity
-
-		if unit != nil && unit.Type == BEE && unit.Player == player {
-			fmt.Println(coords, unit)
-			orders = append(orders, Order{
-				Type:      MOVE,
-				Coords:    coords,
-				Direction: dirs[rand.Intn(len(dirs))],
-			})
-		}
-	}
-
+	orders := commands(state, player)
 	return orders
+
 }
 
 func main() {
