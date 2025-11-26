@@ -45,7 +45,7 @@ func (viewer *Viewer) Update() error {
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
-		m := viewer.CoordsToTransform(Coords{0, 0})
+		m := viewer.CoordsToTransform(Coords{Row: 0, Col: 0})
 		m.Invert()
 		tx, ty := m.Apply(float64(x), float64(y))
 		viewer.Cx = tx / Dx * 2
@@ -75,7 +75,7 @@ func (viewer *Viewer) Update() error {
 
 			state := getState(viewer.Live.Host, viewer.Live.Id, viewer.Live.Token)
 			if state != nil {
-				viewer.Game.History = append(viewer.Game.History, Turn{nil, state})
+				viewer.Game.History = append(viewer.Game.History, Turn{Orders: nil, State: state})
 				if viewer.Turn == len(viewer.Game.History)-2 {
 					viewer.Turn++
 				}

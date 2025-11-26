@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"io"
 	"net/http"
 	"os"
-)
 
-import . "hive-arena/common"
+	"github.com/gorilla/websocket"
+
+	. "hive-arena/common"
+)
 
 type WebSocketMessage struct {
 	Turn     int

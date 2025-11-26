@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
 	"maps"
 	"net/http"
@@ -13,9 +12,11 @@ import (
 	"strings"
 	"sync"
 	"time"
-)
 
-import . "hive-arena/common"
+	"github.com/gorilla/websocket"
+
+	. "hive-arena/common"
+)
 
 const MapDir = "maps"
 const HistoryDir = "history"

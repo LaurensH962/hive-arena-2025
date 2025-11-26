@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
 	"maps"
 	"math/rand"
@@ -11,9 +10,11 @@ import (
 	"slices"
 	"sync"
 	"time"
-)
 
-import . "hive-arena/common"
+	"github.com/gorilla/websocket"
+
+	. "hive-arena/common"
+)
 
 const MinTurnDuration = 500 * time.Millisecond
 const TurnTimeout = 2 * time.Second

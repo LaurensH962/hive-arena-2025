@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-)
 
-import . "hive-arena/common"
+	. "hive-arena/common"
+)
 
 var dirs = []Direction{E, SE, SW, W, NW, NE}
 
