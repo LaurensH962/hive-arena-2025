@@ -8,15 +8,17 @@ import (
 	. "hive-arena/common"
 )
 
-var dirs = []Direction{E, SE, SW, W, NW, NE}
+//var dirs = []Direction{E, NE, SW, W, NW, NE}
 
 func think(state *GameState, player int) []Order {
 
-	var orders []Order
-	// Use a persistent AgentMemory so we keep discovered info across turns.
 	as := EnsureAgentMemory(player)
 	as.UpdateFromGameState(state, player)
 	fmt.Print(as.DetailedString())
+	var orders []Order
+	// orders := commands(state, player)
+
+	// Use a persistent AgentMemory so we keep discovered info across turns.
 
 	// check GameState.NumPlayers & select strategy based on that AT SOME POINT LOL
 
@@ -50,6 +52,8 @@ func think(state *GameState, player int) []Order {
 			}
 
 			// otherwise move towards nearest hive if we know one
+			//PATHFIDER HERE
+// ///////////////////////////////////////////////////////////////////
 			if foundHive {
 				if dir, ok := as.BestDirectionTowards(b.Coords, nearest); ok {
 					orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
@@ -61,7 +65,7 @@ func think(state *GameState, player int) []Order {
 			orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dirs[rand.Intn(len(dirs))]})
 			continue
 		}
-
+////////////////////////////////////////////////////////////////////////
 		// Not carrying a flower: if standing on a field with resources, forage (pick)
 		if _, ok := as.Flowers[b.Coords]; ok {
 			orders = append(orders, Order{Type: FORAGE, Coords: b.Coords})
@@ -82,6 +86,7 @@ func think(state *GameState, player int) []Order {
 	}
 
 	return orders
+
 }
 
 func main() {
