@@ -95,13 +95,13 @@ func getState(host string, id string, token string) *GameState {
 	return &response
 }
 
-func getPlayerNames(host string, id string) []string {
+func fillGameInfo(host string, id string, game *PersistedGame) {
 	url := fmt.Sprintf("http://%s/status", host)
 	body, err := request(url)
 
 	if err != nil {
 		fmt.Println(err, body)
-		return nil
+		return
 	}
 
 	var response StatusResponse
@@ -109,11 +109,12 @@ func getPlayerNames(host string, id string) []string {
 
 	for _, status := range response.Games {
 		if status.Id == id {
-			return status.Players
+			game.Players = status.Players
+			game.Map = status.Map
+			game.CreatedDate = status.CreatedDate
+			return
 		}
 	}
-
-	return nil
 }
 
 type LiveGame struct {

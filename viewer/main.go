@@ -119,7 +119,7 @@ func (viewer *Viewer) Update() error {
 				}
 
 				if len(viewer.Game.Players) < state.NumPlayers {
-					viewer.Game.Players = getPlayerNames(viewer.Live.Host, viewer.Live.Id)
+					fillGameInfo(viewer.Live.Host, viewer.Live.Id, viewer.Game)
 				}
 			}
 		default:
