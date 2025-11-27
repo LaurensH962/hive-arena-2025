@@ -2,12 +2,16 @@ package main
 
 import (
 	"bytes"
-	"github.com/hajimehoshi/ebiten/v2"
 	"image"
-)
 
-import . "hive-arena/common"
-import _ "embed"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+
+	. "hive-arena/common"
+
+	_ "embed"
+)
 
 var TerrainTiles map[Terrain]*ebiten.Image
 var EmptyFieldTile *ebiten.Image
@@ -49,6 +53,8 @@ func loadImage(data []byte) *ebiten.Image {
 	return ebiten.NewImageFromImage(img)
 }
 
+var Font *text.GoTextFace
+
 func LoadResources() {
 	TerrainTiles = make(map[Terrain]*ebiten.Image)
 
@@ -64,4 +70,10 @@ func LoadResources() {
 	EntityTiles[WALL] = loadImage(SpriteWall)
 	EntityTiles[WALL] = loadImage(SpriteWall)
 	FlowerImage = loadImage(SpriteFlower)
+
+	fontSource, _ := text.NewGoTextFaceSource(bytes.NewReader(fonts.PressStart2P_ttf))
+	Font = &text.GoTextFace{
+		Source: fontSource,
+		Size:   16,
+	}
 }

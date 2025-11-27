@@ -3,14 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image/color"
+	"slices"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"image/color"
-	"slices"
-)
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 
-import . "hive-arena/common"
+	. "hive-arena/common"
+)
 
 const Dx = 32
 const Dy = 16
@@ -24,6 +26,8 @@ var PlayerColors = []color.Color{
 	color.RGBA{255, 100, 255, 255},
 }
 
+const AutoplaySpeed = 10 // ebiten runs 60 ticks per second, so 6 turns per second
+
 type Viewer struct {
 	Game *PersistedGame
 	Turn int
@@ -32,6 +36,10 @@ type Viewer struct {
 	Scale  float64
 
 	Live *LiveGame
+
+	// Autoplay
+	Playing   bool
+	PlayTimer int
 }
 
 func (viewer *Viewer) Update() error {
@@ -45,19 +53,48 @@ func (viewer *Viewer) Update() error {
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		x, y := ebiten.CursorPosition()
-		m := viewer.CoordsToTransform(Coords{0, 0})
+		m := viewer.CoordsToTransform(Coords{Row: 0, Col: 0})
 		m.Invert()
 		tx, ty := m.Apply(float64(x), float64(y))
 		viewer.Cx = tx / Dx * 2
 		viewer.Cy = ty / Dy
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyRight) && viewer.Turn < len(viewer.Game.History)-1 {
-		viewer.Turn++
+	// Toggle Autoplay with Space
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		viewer.Playing = !viewer.Playing
+		viewer.PlayTimer = 0
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) && viewer.Turn > 0 {
-		viewer.Turn--
+	// Run Autoplay
+	if viewer.Playing {
+		viewer.PlayTimer--
+		if viewer.PlayTimer <= 0 {
+			if viewer.Turn < len(viewer.Game.History)-1 {
+				viewer.Turn++
+				viewer.PlayTimer = AutoplaySpeed
+			} else {
+				viewer.Playing = false
+			}
+		}
+	}
+
+	//add modifying how far left/right takes you: shift+arrow moves 10 turns, ctrl+arrow moves 50 turns
+	step := 1
+	if ebiten.IsKeyPressed(ebiten.KeyShift) || ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeyShiftRight) {
+		step = 10
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyControl) || ebiten.IsKeyPressed(ebiten.KeyControlLeft) || ebiten.IsKeyPressed(ebiten.KeyControlRight) ||
+		ebiten.IsKeyPressed(ebiten.KeyAlt) || ebiten.IsKeyPressed(ebiten.KeyAltLeft) || ebiten.IsKeyPressed(ebiten.KeyAltRight) {
+		step = 50
+	}
+	//use modified step length, clamp to maximum len - 1
+	if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
+		viewer.Turn = min(viewer.Turn+step, len(viewer.Game.History)-1)
+	}
+	//use modified step length, clamp to minimum 0
+	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
+		viewer.Turn = max(viewer.Turn-step, 0)
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
@@ -75,9 +112,13 @@ func (viewer *Viewer) Update() error {
 
 			state := getState(viewer.Live.Host, viewer.Live.Id, viewer.Live.Token)
 			if state != nil {
-				viewer.Game.History = append(viewer.Game.History, Turn{nil, state})
+				viewer.Game.History = append(viewer.Game.History, Turn{Orders: nil, State: state})
 				if viewer.Turn == len(viewer.Game.History)-2 {
 					viewer.Turn++
+				}
+
+				if len(viewer.Game.Players) < state.NumPlayers {
+					fillGameInfo(viewer.Live.Host, viewer.Live.Id, viewer.Game)
 				}
 			}
 		default:
@@ -146,16 +187,34 @@ func (viewer *Viewer) DrawState(screen *ebiten.Image) {
 		}
 	}
 
-	txt := fmt.Sprintf("%s (%s) %v\nTurn: %d\nPlayers: %v\nResources: %v\nGame over: %v",
+	viewer.DrawInfo(screen, state)
+}
+
+func (viewer *Viewer) DrawInfo(screen *ebiten.Image, state *GameState) {
+	lineHeight := Font.Size + 2
+
+	txtOp := &text.DrawOptions{}
+	txtOp.GeoM.Translate(lineHeight/2, lineHeight/2)
+
+	text.Draw(screen, fmt.Sprintf("%s (%s) %v",
 		viewer.Game.Id,
 		viewer.Game.Map,
-		viewer.Game.CreatedDate,
-		state.Turn,
-		viewer.Game.Players,
-		state.PlayerResources,
-		state.GameOver,
-	)
-	ebitenutil.DebugPrint(screen, txt)
+		viewer.Game.CreatedDate),
+		Font, txtOp)
+
+	txtOp.GeoM.Translate(0, lineHeight)
+	text.Draw(screen, fmt.Sprintf("Turn: %d", state.Turn), Font, txtOp)
+
+	for i, player := range viewer.Game.Players {
+		txtOp.GeoM.Translate(0, lineHeight)
+		txtOp.ColorScale.Reset()
+		txtOp.ColorScale.ScaleWithColor(PlayerColors[i])
+		text.Draw(screen, fmt.Sprintf("Player %d: %s (%d flowers)", i, player, state.PlayerResources[i]), Font, txtOp)
+	}
+
+	txtOp.ColorScale.Reset()
+	txtOp.GeoM.Translate(0, lineHeight)
+	text.Draw(screen, fmt.Sprintf("Game over: %v", state.GameOver), Font, txtOp)
 }
 
 func (viewer *Viewer) Draw(screen *ebiten.Image) {

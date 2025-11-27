@@ -457,7 +457,13 @@ func (gs *GameState) PlayerView(player int) *GameState {
 		}
 	}
 
-	view.PlayerResources = []uint{gs.PlayerResources[player]}
+	resources := slices.Clone(gs.PlayerResources)
+	for i := range resources {
+		if i != player {
+			resources[i] = 0
+		}
+	}
+	view.PlayerResources = resources
 
 	return view
 }
