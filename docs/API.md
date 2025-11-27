@@ -42,10 +42,10 @@ Each game status follows the following format:
 {
 	"id": (string) the game ID,
 	"numPlayer": (int) the number of players the games expects,
+	"players": (array of string) the names of the players who joined the game,
 	"map": (string) the chosen map,
 	"createdDate": (string) the time of creation of the game, in ISO 8601 format,
-	"gameOver": (bool) whether the game is over or not,
-	"playersJoined": (int) how many players have joined the game so far
+	"gameOver": (bool) whether the game is over or not
 }
 ```
 
