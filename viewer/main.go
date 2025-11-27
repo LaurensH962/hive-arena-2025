@@ -81,6 +81,10 @@ func (viewer *Viewer) Update() error {
 				if viewer.Turn == len(viewer.Game.History)-2 {
 					viewer.Turn++
 				}
+
+				if len(viewer.Game.Players) < state.NumPlayers {
+					viewer.Game.Players = getPlayerNames(viewer.Live.Host, viewer.Live.Id)
+				}
 			}
 		default:
 		}

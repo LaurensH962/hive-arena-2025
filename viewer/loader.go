@@ -95,6 +95,27 @@ func getState(host string, id string, token string) *GameState {
 	return &response
 }
 
+func getPlayerNames(host string, id string) []string {
+	url := fmt.Sprintf("http://%s/status", host)
+	body, err := request(url)
+
+	if err != nil {
+		fmt.Println(err, body)
+		return nil
+	}
+
+	var response StatusResponse
+	json.Unmarshal([]byte(body), &response)
+
+	for _, status := range response.Games {
+		if status.Id == id {
+			return status.Players
+		}
+	}
+
+	return nil
+}
+
 type LiveGame struct {
 	Host, Id, Token string
 	Channel         chan int

@@ -58,3 +58,8 @@ type SessionStatus struct {
 	Players     []string  `json:"players"`
 	GameOver    bool      `json:"gameOver"`
 }
+
+type StatusResponse struct {
+	GitRevision string          `json:"gitRevision"`
+	Games       []SessionStatus `json:"games"`
+}

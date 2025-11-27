@@ -145,12 +145,12 @@ func (server *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 		statuses = append(statuses, session.Status())
 	}
 
-	status := map[string]any{
-		"gitRevision": GitRevision(),
-		"games":       statuses,
+	response := StatusResponse{
+		GitRevision: GitRevision(),
+		Games: statuses,
 	}
 
-	writeJson(w, status, http.StatusOK)
+	writeJson(w, response, http.StatusOK)
 }
 
 func (server *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
