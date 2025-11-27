@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
 	"maps"
 	"net/http"
@@ -13,9 +12,11 @@ import (
 	"strings"
 	"sync"
 	"time"
-)
 
-import . "hive-arena/common"
+	"github.com/gorilla/websocket"
+
+	. "hive-arena/common"
+)
 
 const MapDir = "maps"
 const HistoryDir = "history"
@@ -24,8 +25,8 @@ const GameStartTimeout = 5 * time.Minute
 type Server struct {
 	mutex sync.Mutex
 
-	Maps  map[string]MapData
-	Games map[string]*GameSession
+	Maps     map[string]MapData
+	Sessions map[string]*GameSession
 }
 
 func loadMaps() map[string]MapData {
@@ -83,9 +84,9 @@ func (server *Server) handleNewGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	server.mutex.Lock()
-	id := GenerateUniqueID(server.Games)
+	id := GenerateUniqueID(server.Sessions)
 	game := NewGameSession(id, players, mapname, mapdata)
-	server.Games[id] = game
+	server.Sessions[id] = game
 	server.mutex.Unlock()
 
 	time.AfterFunc(GameStartTimeout, func() { server.removeIfNotStarted(id) })
@@ -106,9 +107,9 @@ func (server *Server) removeIfNotStarted(id string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
-	game := server.Games[id]
+	game := server.Sessions[id]
 	if game != nil && !game.IsFull() {
-		delete(server.Games, id)
+		delete(server.Sessions, id)
 		log.Printf("Removed game %s because of timeout", id)
 	}
 }
@@ -117,9 +118,9 @@ func (server *Server) removeIfOver(id string) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
-	game := server.Games[id]
+	game := server.Sessions[id]
 	if game != nil && game.State.GameOver {
-		delete(server.Games, id)
+		delete(server.Sessions, id)
 		return
 	}
 
@@ -130,7 +131,7 @@ func (server *Server) getGameSync(id string) *GameSession {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
-	return server.Games[id]
+	return server.Sessions[id]
 }
 
 func (server *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
@@ -139,24 +140,17 @@ func (server *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
-	var statuses = []map[string]any{}
-	for _, game := range server.Games {
-		statuses = append(statuses, map[string]any{
-			"id":            game.ID,
-			"createdDate":   game.CreatedDate,
-			"numPlayers":    game.State.NumPlayers,
-			"playersJoined": len(game.Players),
-			"map":           game.Map,
-			"gameOver":      game.State.GameOver,
-		})
+	var statuses = []SessionStatus{}
+	for _, session := range server.Sessions {
+		statuses = append(statuses, session.Status())
 	}
 
-	status := map[string]any{
-		"gitRevision": GitRevision(),
-		"games":       statuses,
+	response := StatusResponse{
+		GitRevision: GitRevision(),
+		Games:       statuses,
 	}
 
-	writeJson(w, status, http.StatusOK)
+	writeJson(w, response, http.StatusOK)
 }
 
 func (server *Server) handleJoin(w http.ResponseWriter, r *http.Request) {
@@ -284,8 +278,8 @@ func (server *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 func RunServer(port int) {
 
 	server := Server{
-		Maps:  loadMaps(),
-		Games: make(map[string]*GameSession),
+		Maps:     loadMaps(),
+		Sessions: make(map[string]*GameSession),
 	}
 
 	http.HandleFunc("GET /newgame", server.handleNewGame)

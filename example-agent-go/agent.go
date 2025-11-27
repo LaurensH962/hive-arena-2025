@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"io"
 	"net/http"
 	"os"
-)
 
-import . "hive-arena/common"
+	"github.com/gorilla/websocket"
+
+	. "hive-arena/common"
+)
 
 func request(url string) string {
 

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log"
 	"maps"
 	"math/rand"
@@ -11,9 +10,11 @@ import (
 	"slices"
 	"sync"
 	"time"
-)
 
-import . "hive-arena/common"
+	"github.com/gorilla/websocket"
+
+	. "hive-arena/common"
+)
 
 const MinTurnDuration = 500 * time.Millisecond
 const TurnTimeout = 2 * time.Second
@@ -67,93 +68,93 @@ func NewGameSession(id string, players int, mapname string, mapdata MapData) *Ga
 	}
 }
 
-func (game *GameSession) IsFull() bool {
-	return len(game.Players) == game.State.NumPlayers
+func (session *GameSession) IsFull() bool {
+	return len(session.Players) == session.State.NumPlayers
 }
 
-func (game *GameSession) AddPlayer(name string) *Player {
-	game.mutex.Lock()
-	defer game.mutex.Unlock()
+func (session *GameSession) AddPlayer(name string) *Player {
+	session.mutex.Lock()
+	defer session.mutex.Unlock()
 
-	if game.IsFull() {
+	if session.IsFull() {
 		return nil
 	}
 
-	id := len(game.Players)
-	player := Player{id, name, game.PlayerTokens[id]}
+	id := len(session.Players)
+	player := Player{id, name, session.PlayerTokens[id]}
 
-	game.Players = append(game.Players, player)
+	session.Players = append(session.Players, player)
 
-	if game.IsFull() {
-		game.BeginTurn()
+	if session.IsFull() {
+		session.BeginTurn()
 	}
 
 	return &player
 }
 
-func (game *GameSession) Player(token string) *Player {
-	game.mutex.Lock()
-	defer game.mutex.Unlock()
+func (session *GameSession) Player(token string) *Player {
+	session.mutex.Lock()
+	defer session.mutex.Unlock()
 
-	playerid := slices.Index(game.PlayerTokens, token)
+	playerid := slices.Index(session.PlayerTokens, token)
 	if playerid < 0 {
 		return nil
 	}
-	return &game.Players[playerid]
+	return &session.Players[playerid]
 }
 
-func (game *GameSession) GetView(token string) *GameState {
-	game.mutex.Lock()
-	defer game.mutex.Unlock()
+func (session *GameSession) GetView(token string) *GameState {
+	session.mutex.Lock()
+	defer session.mutex.Unlock()
 
-	playerid := slices.Index(game.PlayerTokens, token)
+	playerid := slices.Index(session.PlayerTokens, token)
 	if playerid < 0 {
 		return nil
 	}
 
-	return game.State.PlayerView(playerid)
+	return session.State.PlayerView(playerid)
 }
 
-func (game *GameSession) BeginTurn() {
+func (session *GameSession) BeginTurn() {
 
 	if !DevMode {
 		time.Sleep(MinTurnDuration)
 	}
 
-	game.notifySockets()
+	session.notifySockets()
 
-	if game.State.GameOver {
+	if session.State.GameOver {
 		return
 	}
 
-	game.PendingOrders = make([][]*Order, game.State.NumPlayers)
+	session.PendingOrders = make([][]*Order, session.State.NumPlayers)
 
-	currentTurn := game.State.Turn
+	currentTurn := session.State.Turn
 	time.AfterFunc(TurnTimeout, func() {
-		game.mutex.Lock()
-		defer game.mutex.Unlock()
+		session.mutex.Lock()
+		defer session.mutex.Unlock()
 
-		if game.State.Turn == currentTurn {
-			game.processTurn()
+		if session.State.Turn == currentTurn {
+			session.processTurn()
 		}
 	})
 }
 
-func (game *GameSession) SetOrders(playerid int, orders []*Order) {
-	game.mutex.Lock()
-	defer game.mutex.Unlock()
+func (session *GameSession) SetOrders(playerid int, orders []*Order) {
+	session.mutex.Lock()
+	defer session.mutex.Unlock()
 
-	game.PendingOrders[playerid] = orders
+	session.PendingOrders[playerid] = orders
 
-	log.Printf("Player %s posted orders in game %s", game.Players[playerid].Name, game.ID)
+	log.Printf("Player %s posted orders in game %s", session.Players[playerid].Name, session.ID)
 
-	if game.allPlayed() {
-		game.processTurn()
+	if session.allPlayed() {
+		session.processTurn()
 	}
 }
 
-func (game *GameSession) allPlayed() bool {
-	for _, orders := range game.PendingOrders {
+func (session *GameSession) allPlayed() bool {
+	for _, orders := range session.PendingOrders {
 		if orders == nil {
 			return false
 		}
@@ -161,74 +162,91 @@ func (game *GameSession) allPlayed() bool {
 	return true
 }
 
-func (game *GameSession) processTurn() {
-	log.Printf("Processing orders for game %s, turn %d", game.ID, game.State.Turn)
+func (session *GameSession) processTurn() {
+	log.Printf("Processing orders for game %s, turn %d", session.ID, session.State.Turn)
 
-	results, _ := game.State.ProcessOrders(game.PendingOrders)
-	game.History = append(game.History, Turn{Orders: results, State: game.State.Clone()})
+	results, _ := session.State.ProcessOrders(session.PendingOrders)
+	session.History = append(session.History, Turn{Orders: results, State: session.State.Clone()})
 
-	if game.State.GameOver {
-		log.Printf("Game %s is over", game.ID)
-		game.persist()
+	if session.State.GameOver {
+		log.Printf("Game %s is over", session.ID)
+		session.persist()
 	}
 
-	game.BeginTurn()
+	session.BeginTurn()
 }
 
-func (game *GameSession) RegisterWebSocket(socket *websocket.Conn) {
-	game.mutex.Lock()
-	defer game.mutex.Unlock()
+func (session *GameSession) RegisterWebSocket(socket *websocket.Conn) {
+	session.mutex.Lock()
+	defer session.mutex.Unlock()
 
-	game.Sockets = append(game.Sockets, socket)
+	session.Sockets = append(session.Sockets, socket)
 
-	if game.IsFull() {
-		game.notifySocket(socket)
+	if session.IsFull() {
+		session.notifySocket(socket)
 	}
 }
 
-func (game *GameSession) notifySocket(socket *websocket.Conn) {
+func (session *GameSession) notifySocket(socket *websocket.Conn) {
 	message, _ := json.Marshal(map[string]any{
-		"turn":     game.State.Turn,
-		"gameOver": game.State.GameOver,
+		"turn":     session.State.Turn,
+		"gameOver": session.State.GameOver,
 	})
 
 	socket.WriteMessage(websocket.TextMessage, message)
 
-	if game.State.GameOver {
+	if session.State.GameOver {
 		socket.Close()
 	}
 }
 
-func (game *GameSession) notifySockets() {
-	for _, socket := range game.Sockets {
-		game.notifySocket(socket)
+func (session *GameSession) notifySockets() {
+	for _, socket := range session.Sockets {
+		session.notifySocket(socket)
 	}
 }
 
-func (game *GameSession) persist() {
-	date, _ := game.CreatedDate.MarshalText()
+func (session *GameSession) persist() {
+	date, _ := session.CreatedDate.MarshalText()
 	path := fmt.Sprintf("%s/%s-%s-%s.json",
 		HistoryDir,
 		date,
-		game.ID,
-		game.Map,
+		session.ID,
+		session.Map,
 	)
 
-	players := make([]string, len(game.Players))
-	for i, player := range game.Players {
+	players := make([]string, len(session.Players))
+	for i, player := range session.Players {
 		players[i] = player.Name
 	}
 
 	info := PersistedGame{
-		Id:          game.ID,
-		Map:         game.Map,
-		CreatedDate: game.CreatedDate,
+		Id:          session.ID,
+		Map:         session.Map,
+		CreatedDate: session.CreatedDate,
 		Players:     players,
-		History:     game.History,
+		History:     session.History,
 	}
 
 	file, _ := os.Create(path)
 	defer file.Close()
 
 	json.NewEncoder(file).Encode(info)
+}
+
+func (session *GameSession) Status() SessionStatus {
+
+	var players []string
+	for _, player := range session.Players {
+		players = append(players, player.Name)
+	}
+
+	return SessionStatus{
+		Id:          session.ID,
+		CreatedDate: session.CreatedDate,
+		Map:         session.Map,
+		NumPlayers:  session.State.NumPlayers,
+		Players:     players,
+		GameOver:    session.State.GameOver,
+	}
 }
