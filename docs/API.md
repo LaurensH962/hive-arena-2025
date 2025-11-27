@@ -85,7 +85,7 @@ The game state is given in the following format:
 	"numPlayers": (int) the number of players in the game,
 	"turn": (int) the current turn (the first turn is 0),
 	"hexes": (dictionary of Hex, with coordinates strings as keys) the current map of the game, including static and dynamic elements,
-	"playerResources": (array of int) the number of flowers for each player, or an array with a single value for the player specific view,
+	"playerResources": (array of int) the number of flowers for each player,
 	"lastResourceChange": (int) the last turn during which a flower was dropped in a hive,
 	"gameOver": (bool) whether the game is over or not,
 	"winners": (array of int) all the players who are tied for the win, if the game is over (can be a single value)
@@ -114,7 +114,7 @@ Entities are encoded as follows:
 }
 ```
 
-When using a player token for this route, the `hexes` dictionary contains only hexes visible by bees and hives of the current player, and the `playerResources` array contains a single value: the current resource count for that player.
+When using a player token for this route, the `hexes` dictionary contains only hexes visible by bees and hives of the current player, and the `playerResources` array contains the value 0 for any other than the given player.
 
 ## POST /orders
 
