@@ -14,6 +14,21 @@ func (as *AgentState) IsWall(c Coords) bool {
     return false
 }
 
+// checks if the coordinate hex has a bee own or opponent
+func (as *AgentState) IsBee(c Coords) bool {
+    for _, w := range as.MyBees.Coords {
+        if w == c {
+            return true
+        }
+    }
+    for _, w := range as.EnemyBees.Coords {
+        if w == c {
+            return true
+        }
+    }
+    return false
+}
+
 // gets start and goal coordinates and the map
 // returns the path to the goal and true, or
 // nil and false if no path is possible
@@ -52,7 +67,7 @@ func (as *AgentState) find_path(start, goal Coords) ([]Coords, bool) {
             if !ok {
                 continue
             }
-            if terrain == ROCK || as.IsWall(next) == true {
+            if terrain == ROCK || as.IsWall(next) == true || as.IsBee(next) == true{
                 continue
             }
 			// should we check if there are opponent bees on our path?
