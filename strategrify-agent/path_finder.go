@@ -16,13 +16,13 @@ func (as *AgentState) IsWall(c Coords) bool {
 
 // checks if the coordinate hex has a bee own or opponent
 func (as *AgentState) IsBee(c Coords) bool {
-    for _, w := range as.MyBees.Coords {
-        if w == c {
+    for _, w := range as.MyBees {
+        if w.Coords == c {
             return true
         }
     }
-    for _, w := range as.EnemyBees.Coords {
-        if w == c {
+    for _, w := range as.EnemyBees {
+        if w.Coords == c {
             return true
         }
     }

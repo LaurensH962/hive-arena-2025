@@ -57,14 +57,14 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 				fmt.Println("len:", len(path))
 				if !ok {
 					fmt.Println("i am here")
-					if dir, ok := as.BestDirectionTowards(b.Coords, nearest); ok {
-						if _, ok := IsValidMoveTarget(as, b.Coords, dir); ok {
+					if dir, ok2 := as.BestDirectionTowards(b.Coords, nearest); ok2 {
+						if _, ok3 := IsValidMoveTarget(as, b.Coords, dir); ok3 {
 							orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
 							continue
 						}
 					}
 				}
-				if dir, ok := as.BestDirectionTowards(b.Coords, path[1]); ok {
+				if dir, ok4 := as.BestDirectionTowards(b.Coords, path[1]); ok4 {
 					orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
 				}
 				continue
@@ -103,26 +103,23 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 		target, ok := as.GetNearestFlower(b.Coords)
 		if ok {
 			path, ok2 := as.find_path(b.Coords, target)
-			if !ok2 {
+			// If we have no usable path, try greedy best-direction towards target
+			if !ok2 || len(path) <= 1 {
 				if dir, ok3 := as.BestDirectionTowards(b.Coords, target); ok3 {
 					if _, ok4 := IsValidMoveTarget(as, b.Coords, dir); ok4 {
 						orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
 						continue
 					}
 				}
+			} else {
+				// path is long enough, step towards next node on path
+				if dir, ok := as.BestDirectionTowards(b.Coords, path[1]); ok {
+					if _, okv := IsValidMoveTarget(as, b.Coords, dir); okv {
+						orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
+					}
+				}
+				continue
 			}
-			if dir, ok := as.BestDirectionTowards(b.Coords, path[1]); ok {
-				orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
-			}
-			continue
-
-			// EMILIAS PATHFINDER WILL GO HERE
-			// if dir, ok2 := as.BestDirectionTowards(b.Coords, target); ok2 {
-			// 	if _, ok := IsValidMoveTarget(as, b.Coords, dir); ok {
-			// 		orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
-			// 		continue
-			// 	}
-			// }
 		}
 		//maybe better move to oposite direction than hive
 		
