@@ -13,8 +13,13 @@ var dirs = []Direction{E, NE, SW, W, NW, NE}
 
 func commands(state *GameState, player int, as *AgentState) []Order {
 	var orders []Order
+
 	// try to spawn new bees first
+	orders = append(orders, BuildHivesOrders(state, player, as)...)
+
 	orders = append(orders, BuildSpawnOrders(state, player, as)...)
+	// here spawn new hives --------------------------------///////////////////////////////////////////
+	//////////////////////////////////////// EMILIA
 
 	// check GameState.NumPlayers & select strategy based on that AT SOME POINT LOL
 
