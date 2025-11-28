@@ -90,14 +90,12 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 		}
 
 
-
 ///// BEE IS NOT CARRYING FLOWER ////
 		// Not carrying a flower: if bee is already standing on a field with resources, forage (pick)
 		if _, ok := as.Flowers[b.Coords]; ok {
 			orders = append(orders, Order{Type: FORAGE, Coords: b.Coords})
 			continue
 		}
-
 		// otherwise move toward nearest visible flower
 		target, ok := as.GetNearestFlower(b.Coords)
 		if ok {

@@ -29,6 +29,7 @@ type AgentState struct {
     Hives   map[int][]Coords // player -> coordinates of hives
     MyBees  []UnitInfo
     EnemyBees []UnitInfo
+	EnemyHives map[int][]Coords
 }
 
 // AgentMemory is the global, persistent agent state that survives across turns.
@@ -48,6 +49,7 @@ func NewAgentState(gs *GameState, player int) *AgentState {
         Hives:     make(map[int][]Coords),
         MyBees:    []UnitInfo{},
         EnemyBees: []UnitInfo{},
+		EnemyHives: make(map[int][]Coords),
     }
 
     for coords, hex := range gs.Hexes {
@@ -66,7 +68,11 @@ func NewAgentState(gs *GameState, player int) *AgentState {
         if hex.Entity != nil {
             switch hex.Entity.Type {
             case HIVE:
-                as.Hives[hex.Entity.Player] = append(as.Hives[hex.Entity.Player], coords)
+				if hex.Entity.Player == player {
+                	as.Hives[hex.Entity.Player] = append(as.Hives[hex.Entity.Player], coords)
+				} else {
+					as.EnemyHives[hex.Entity.Player] = append(as.EnemyHives[hex.Entity.Player], coords)
+				}
             case WALL:
                 as.Walls = append(as.Walls, coords)
             case BEE:
@@ -97,6 +103,7 @@ func EnsureAgentMemory(player int) *AgentState {
             Hives:     make(map[int][]Coords),
             MyBees:    []UnitInfo{},
             EnemyBees: []UnitInfo{},
+			EnemyHives: make(map[int][]Coords),
         }
     }
     return AgentMemory
@@ -157,6 +164,11 @@ func (as *AgentState) UpdateFromGameState(gs *GameState, player int) {
                 if !containsCoords(as.Hives[hex.Entity.Player], coords) {
                     as.Hives[hex.Entity.Player] = append(as.Hives[hex.Entity.Player], coords)
                 }
+				if hex.Entity.Player == player {
+                	as.Hives[hex.Entity.Player] = append(as.Hives[hex.Entity.Player], coords)
+				} else {
+					as.EnemyHives[hex.Entity.Player] = append(as.EnemyHives[hex.Entity.Player], coords)
+				}
             case WALL:
                 if !containsCoords(as.Walls, coords) {
                     as.Walls = append(as.Walls, coords)
