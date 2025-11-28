@@ -7,7 +7,6 @@ import (
 	"slices"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 
@@ -191,10 +190,8 @@ func (viewer *Viewer) DrawState(screen *ebiten.Image) {
 }
 
 func (viewer *Viewer) DrawInfo(screen *ebiten.Image, state *GameState) {
-	lineHeight := Font.Size + 2
-
 	txtOp := &text.DrawOptions{}
-	txtOp.GeoM.Translate(lineHeight/2, lineHeight/2)
+	txtOp.GeoM.Translate(LineHeight/2, LineHeight/2)
 
 	text.Draw(screen, fmt.Sprintf("%s (%s) %v",
 		viewer.Game.Id,
@@ -202,18 +199,18 @@ func (viewer *Viewer) DrawInfo(screen *ebiten.Image, state *GameState) {
 		viewer.Game.CreatedDate),
 		Font, txtOp)
 
-	txtOp.GeoM.Translate(0, lineHeight)
+	txtOp.GeoM.Translate(0, LineHeight)
 	text.Draw(screen, fmt.Sprintf("Turn: %d", state.Turn), Font, txtOp)
 
 	for i, player := range viewer.Game.Players {
-		txtOp.GeoM.Translate(0, lineHeight)
+		txtOp.GeoM.Translate(0, LineHeight)
 		txtOp.ColorScale.Reset()
 		txtOp.ColorScale.ScaleWithColor(PlayerColors[i])
 		text.Draw(screen, fmt.Sprintf("Player %d: %s (%d flowers)", i, player, state.PlayerResources[i]), Font, txtOp)
 	}
 
 	txtOp.ColorScale.Reset()
-	txtOp.GeoM.Translate(0, lineHeight)
+	txtOp.GeoM.Translate(0, LineHeight)
 	text.Draw(screen, fmt.Sprintf("Game over: %v", state.GameOver), Font, txtOp)
 }
 
@@ -225,8 +222,9 @@ func (viewer *Viewer) Draw(screen *ebiten.Image) {
 		}
 		viewer.DrawState(screen)
 	} else {
-		txt := fmt.Sprintf("%s has not started yet", viewer.Game.Id)
-		ebitenutil.DebugPrint(screen, txt)
+		txtOp := &text.DrawOptions{}
+		txtOp.GeoM.Translate(LineHeight/2, LineHeight/2)
+		text.Draw(screen, fmt.Sprintf("%s has not started yet", viewer.Game.Id), Font, txtOp)
 	}
 }
 

@@ -54,6 +54,7 @@ func loadImage(data []byte) *ebiten.Image {
 }
 
 var Font *text.GoTextFace
+var LineHeight float64
 
 func LoadResources() {
 	TerrainTiles = make(map[Terrain]*ebiten.Image)
@@ -76,4 +77,5 @@ func LoadResources() {
 		Source: fontSource,
 		Size:   16,
 	}
+	LineHeight = Font.Size + 2
 }
