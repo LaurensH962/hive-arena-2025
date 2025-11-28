@@ -16,7 +16,6 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 
 	// try to spawn new bees first
 	orders = append(orders, BuildHivesOrders(state, player, as)...)
-
 	orders = append(orders, BuildSpawnOrders(state, player, as)...)
 	// here spawn new hives --------------------------------///////////////////////////////////////////
 	//////////////////////////////////////// EMILIA
