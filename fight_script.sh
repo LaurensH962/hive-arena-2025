@@ -10,12 +10,13 @@ PLAYERS=2
 # Bot 1 configuration
 BOT1_SOURCE="./strategrify-agent"
 BOT1_BINARY="./strategrify-agent/agent_bin"
-BOT1_NAME="AGENT"
+BOT1_NAME="BeeBee"
 
 # Bot 2 configuration (change these to use a different bot)
 BOT2_SOURCE="./strategrify-agent"  # Change to "./example-agent-go" or another agent folder
-BOT2_BINARY="./strategrify-agent/agent_bin"
-BOT2_NAME="Bot-2"
+# Use a different binary filename for bot2 so building bot2 doesn't overwrite bot1's binary
+BOT2_BINARY="./strategrify-agent/agent_bin2"
+BOT2_NAME="Laila"
 
 # 1. Check for dependencies
 if ! command -v jq &> /dev/null; then

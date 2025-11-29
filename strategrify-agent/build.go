@@ -45,7 +45,7 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 				nearestHiveDist = dist
 			}
 		}
-		if nearestHiveDist < 10 {
+		if nearestHiveDist < 5 {
 			continue 
 		}
 

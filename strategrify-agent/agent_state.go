@@ -30,7 +30,22 @@ type AgentState struct {
     MyBees  []UnitInfo
     EnemyBees []UnitInfo
 	EnemyHives map[int][]Coords
+    // BeeRoles maps the current coords of each friendly bee to a role
+    BeeRoles map[Coords]BeeRole
+    // TrackedBees holds persistent tracked bee records so roles survive moves
+    TrackedBees map[string]*TrackedBee
+    // NextTrackedID is used to generate unique IDs for new tracked bees
+    NextTrackedID int
 }
+
+// BeeRole is the role assigned to a bee. Simple example roles included.
+type BeeRole string
+
+const (
+    RoleHarvester BeeRole = "HARVESTER"
+    RoleScout     BeeRole = "SCOUT"
+    RoleDefender  BeeRole = "DEFENDER"
+)
 
 // AgentMemory is the global, persistent agent state that survives across turns.
 var AgentMemory *AgentState
@@ -50,6 +65,9 @@ func NewAgentState(gs *GameState, player int) *AgentState {
         MyBees:    []UnitInfo{},
         EnemyBees: []UnitInfo{},
 		EnemyHives: make(map[int][]Coords),
+        BeeRoles:  make(map[Coords]BeeRole),
+        TrackedBees: make(map[string]*TrackedBee),
+        NextTrackedID: 0,
     }
 
     for coords, hex := range gs.Hexes {
@@ -104,9 +122,21 @@ func EnsureAgentMemory(player int) *AgentState {
             MyBees:    []UnitInfo{},
             EnemyBees: []UnitInfo{},
 			EnemyHives: make(map[int][]Coords),
+            BeeRoles:  make(map[Coords]BeeRole),
+            TrackedBees: make(map[string]*TrackedBee),
+            NextTrackedID: 0,
         }
     }
     return AgentMemory
+}
+
+// TrackedBee represents a persistent record for an observed bee so we can
+// maintain role identity across turns even when the bee moves.
+type TrackedBee struct {
+    ID string
+    Last Coords
+    Role BeeRole
+    LastSeenTurn uint
 }
 
 // containsCoords reports whether slice contains coordinate c.
@@ -183,6 +213,85 @@ func (as *AgentState) UpdateFromGameState(gs *GameState, player int) {
             }
         }
     }
+
+    // Persistent identity tracking: match visible bees to tracked bees so
+    // roles persist across moves. We'll match by nearest Last coords within
+    // a small threshold; unmatched bees become new tracked bees and receive
+    // a role chosen to balance role counts.
+    roleList := []BeeRole{RoleHarvester, RoleScout, RoleDefender}
+    as.BeeRoles = make(map[Coords]BeeRole)
+
+    // Helper: count current tracked roles
+    roleCounts := func() map[BeeRole]int {
+        rc := make(map[BeeRole]int)
+        for _, tb := range as.TrackedBees {
+            rc[tb.Role]++
+        }
+        return rc
+    }
+
+    matchedTracked := make(map[string]bool)
+    // For deterministic behavior, iterate visible bees in their existing order
+    for _, u := range as.MyBees {
+        bestID := ""
+        bestDist := 1<<30
+        for id, tb := range as.TrackedBees {
+            if matchedTracked[id] {
+                continue
+            }
+            d := tb.Last.Distance(u.Coords)
+            if d < bestDist {
+                bestDist = d
+                bestID = id
+            }
+        }
+
+        // Match threshold: accept matches only if reasonably close (<=2)
+        if bestID != "" && bestDist <= 2 {
+            tb := as.TrackedBees[bestID]
+            tb.Last = u.Coords
+            tb.LastSeenTurn = as.Turn
+            as.BeeRoles[u.Coords] = tb.Role
+            matchedTracked[bestID] = true
+            continue
+        }
+
+        // No match -> create new tracked bee and choose a role with minimal count
+        counts := roleCounts()
+        chosen := roleList[0]
+        minc := counts[chosen]
+        for _, r := range roleList {
+            if counts[r] < minc {
+                chosen = r
+                minc = counts[r]
+            }
+        }
+        newID := fmt.Sprintf("tb-%d-%d", as.NextTrackedID, as.Turn)
+        as.NextTrackedID++
+        tb := &TrackedBee{ID: newID, Last: u.Coords, Role: chosen, LastSeenTurn: as.Turn}
+        as.TrackedBees[newID] = tb
+        matchedTracked[newID] = true
+        as.BeeRoles[u.Coords] = chosen
+    }
+
+    // Cleanup stale tracked bees not seen for a long time
+    staleThreshold := uint(20)
+    for id, tb := range as.TrackedBees {
+        if as.Turn > tb.LastSeenTurn && as.Turn-tb.LastSeenTurn > staleThreshold {
+            delete(as.TrackedBees, id)
+        }
+    }
+}
+
+// GetBeeRole returns the role for a bee at coords if known, otherwise a default.
+func (as *AgentState) GetBeeRole(c Coords) BeeRole {
+    if as == nil {
+        return RoleHarvester
+    }
+    if r, ok := as.BeeRoles[c]; ok {
+        return r
+    }
+    return RoleHarvester
 }
 
 // IsFlower returns true when the coordinates contain a flower (field with resources).
