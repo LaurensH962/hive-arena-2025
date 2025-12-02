@@ -81,7 +81,7 @@ func (as *AgentState) find_path(b UnitInfo, goal Coords) ([]Coords, bool) {
     queue := []*node{startNode}
     visited[start] = 0
 
-    for len(queue) > 0{
+    for len(queue) > 0 {
         current, index := FindLowestCost(queue)
         if current == nil {
             return nil, false
@@ -119,4 +119,34 @@ func (as *AgentState) find_path(b UnitInfo, goal Coords) ([]Coords, bool) {
     }
 
     return nil, false // no path found
+}
+
+func (as *AgentState) scout_goal(b UnitInfo) (Coords, bool) {
+
+    // north, west, south, east
+    // breath out algorithm?? find the nearest tile with MOST unknown tiles next to it
+    start := b.Coords
+    visited := make(map[Coords]bool)
+    startNode := &node{Hex_c: start, Prev: nil}
+    queue := []*node{startNode}
+    visited[start] = true
+
+    for len(queue) > 0 {
+        current := queue[0]
+        queue = queue[1:]
+
+        for dir := range DirectionToOffset {
+            next := current.Hex_c.Neighbour(dir)
+            _, ok := as.Map[next]
+            if !ok {
+                return current.Hex_c, true
+            }
+            if !visited[next] {
+                visited[next] = true
+                newNode := &node{Hex_c: next, Prev: current}
+                queue = append(queue, newNode)
+            }
+        }
+    }
+    return start, false
 }
