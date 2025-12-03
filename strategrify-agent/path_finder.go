@@ -72,7 +72,7 @@ func FindLowestCost(queue []*node) (*node, int) {
 // do we save the path to our memory and check if the path is still valid next turn?
 // because walls may rise up or the path may change, might be faster to check if the generated path
 // is still available than always to create new path
-func (as *AgentState) find_path(b UnitInfo, goal Coords) ([]Coords, bool) {
+func (as *AgentState) find_path(b UnitInfo, goal Coords, state *GameState) ([]Coords, bool) {
     start := b.Coords
     bestDist := b.Coords.Distance(goal) // the distance between the start and the goal
 

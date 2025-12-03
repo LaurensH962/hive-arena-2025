@@ -55,7 +55,7 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 			}
 
 			if foundHive {
-				path, ok := as.find_path(b, nearest)
+				path, ok := as.find_path(b, nearest, state)
 				if !ok || len(path) <= 1 {
 					if dir, ok2 := as.BestDirectionTowards(b.Coords, nearest); ok2 {
 						// if there's an ENEMY wall in that direction, attack it; otherwise move
@@ -127,7 +127,7 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 					}
 				}
 			} */
-			path, ok2 := as.find_path(b, target)
+			path, ok2 := as.find_path(b, target, state)
 			// If we have no usable path, try greedy best-direction towards target -> just the shortest distance path
 			if !ok2 || len(path) <= 1 {
 				if dir, ok3 := as.BestDirectionTowards(b.Coords, target); ok3 {

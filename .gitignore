@@ -13,5 +13,6 @@
 .DS_Store
 arena_cli
 arena_server
-agent_bin
-agent_bin2
+strategrify-agent/agent_bin
+strategrify-agent/agent_bin2
+fight_script.sh
