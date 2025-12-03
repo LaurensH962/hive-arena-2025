@@ -40,3 +40,12 @@ func IsValidMoveTarget(as *AgentState, from Coords, dir Direction) (Coords, bool
 
     return target, true
 }
+
+// IsWallAt returns true if there is a WALL entity at the given coords
+// (convenience helper so callers can react differently to walls).
+func IsWallAt(as *AgentState, coords Coords) bool {
+    if hex, ok := as.Hexes[coords]; ok && hex.Entity != nil && hex.Entity.Type == WALL {
+        return true
+    }
+    return false
+}

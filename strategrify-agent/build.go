@@ -14,12 +14,12 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 	orders := []Order{}
 
 	resources := int(state.PlayerResources[player])
-	if resources < 12 {
+	if resources < 24 {
 		return orders // not enough resources
 	}
 
 	hives := as.Hives[player]
-	if len(hives) >= 2 {
+	if len(hives) >= 3 {
 		return orders 
 	}
 
@@ -49,8 +49,7 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 				nearestHiveDist = dist
 			}
 		}
-
-		if nearestHiveDist < 10 {
+		if nearestHiveDist <= 11 {
 			continue 
 		}
 
