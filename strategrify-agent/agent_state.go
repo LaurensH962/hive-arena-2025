@@ -30,12 +30,15 @@ type AgentState struct {
 	MyBees     []UnitInfo
 	EnemyBees  []UnitInfo
 	EnemyHives map[int][]Coords
-	// BeeRoles maps the current coords of each friendly bee to a rolegit 
+	// BeeRoles maps the current coords of each friendly bee to a rolegit
 	BeeRoles map[Coords]BeeRole
 	// TrackedBees holds persistent tracked bee records so roles survive moves
 	TrackedBees map[string]*TrackedBee
 	// NextTrackedID is used to generate unique IDs for new tracked bees
 	NextTrackedID int
+	// ScoutHeatMap tracks how many times each tile has been visited by scouts
+	// Used to distinguish between map boundaries (high count neighbors) and unexplored areas
+	ScoutHeatMap map[Coords]int
 }
 
 // BeeRole is the role assigned to a bee. Simple example roles included.
@@ -67,6 +70,7 @@ func NewAgentState(gs *GameState, player int) *AgentState {
 		BeeRoles:      make(map[Coords]BeeRole),
 		TrackedBees:   make(map[string]*TrackedBee),
 		NextTrackedID: 0,
+		ScoutHeatMap:  make(map[Coords]int),
 	}
 
 	for coords, hex := range gs.Hexes {
@@ -124,6 +128,7 @@ func EnsureAgentMemory(player int) *AgentState {
 			BeeRoles:      make(map[Coords]BeeRole),
 			TrackedBees:   make(map[string]*TrackedBee),
 			NextTrackedID: 0,
+			ScoutHeatMap:  make(map[Coords]int),
 		}
 	}
 	return AgentMemory
@@ -221,13 +226,13 @@ func (as *AgentState) UpdateFromGameState(gs *GameState, player int) {
 	as.BeeRoles = make(map[Coords]BeeRole)
 
 	// Helper: count current tracked roles
-	roleCounts := func() map[BeeRole]int {
+	/*roleCounts := func() map[BeeRole]int {
 		rc := make(map[BeeRole]int)
 		for _, tb := range as.TrackedBees {
 			rc[tb.Role]++
 		}
 		return rc
-	}
+	}*/
 
 	matchedTracked := make(map[string]bool)
 	// For deterministic behavior, iterate visible bees in their existing order
@@ -263,15 +268,15 @@ func (as *AgentState) UpdateFromGameState(gs *GameState, player int) {
 		if len(as.TrackedBees) < 3 && len(as.MyBees) <= 3 && beeIdx < len(roleList) {
 			chosen = roleList[beeIdx]
 		} else {
-			counts := roleCounts()
+			//counts := roleCounts()
 			chosen = roleList[0]
-			minc := counts[chosen]
-			for _, r := range roleList {
-				if counts[r] < minc {
-					chosen = r
-					minc = counts[r]
-				}
-			}
+			//minc := counts[chosen]
+			//for _, r := range roleList {
+			//	if counts[r] < minc {
+			//		chosen = r
+			//		minc = counts[r]
+			//	}
+			//}
 		}
 		newID := fmt.Sprintf("tb-%d-%d", as.NextTrackedID, as.Turn)
 		as.NextTrackedID++
