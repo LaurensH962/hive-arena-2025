@@ -99,6 +99,8 @@ func (as *AgentState) find_path(b UnitInfo, goal Coords) ([]Coords, bool) {
         for dir := range DirectionToOffset {
             next := current.Hex_c.Neighbour(dir)
 
+            // TODO: bees think they can go through hives
+            // they also are way too polite and get stuck so fix that
             // Only allow path on known tiles:
             terrain, ok := as.Map[next]
             if !ok {
