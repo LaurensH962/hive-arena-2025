@@ -2,6 +2,7 @@ package main
 
 import (
 	// "fmt"
+	"fmt"
 	"math/rand"
 	//"os"
 
@@ -14,6 +15,8 @@ var dirs = []Direction{E, NE, SW, W, NW, NE}
 func commands(state *GameState, player int, as *AgentState) []Order {
 	var orders []Order
 
+	// find the scout and give it scout directions
+	orders = append(orders, find_scout(as)...)
 	// try to spawn new bees first
 	orders = append(orders, BuildHivesOrders(state, player, as)...)
 	orders = append(orders, BuildSpawnOrders(state, player, as)...)
@@ -27,6 +30,19 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 	for _, b := range as.MyBees {
 
 //// FIRST CHECK IF BEE ALREADY HAS FLOWER ////////
+		isScout := false
+		for _, role := range as.TrackedBees {
+			if role.Role == RoleScout {
+				if b.Coords == role.Last {
+					fmt.Printf("-------------- Assigned SCOUT BITCHES role to bee at %v (ID: )--------------\n", b.Coords)
+					isScout = true
+					break
+				}
+			}
+		}
+		if isScout == true {
+			continue
+		}
 
 		if b.HasFlower {
 
@@ -55,7 +71,7 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 			}
 
 			if foundHive {
-				path, ok := as.find_path(b, nearest, state)
+				path, ok := as.find_path(b, nearest)
 				if !ok || len(path) <= 1 {
 					if dir, ok2 := as.BestDirectionTowards(b.Coords, nearest); ok2 {
 						// if there's an ENEMY wall in that direction, attack it; otherwise move
@@ -127,7 +143,7 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 					}
 				}
 			} */
-			path, ok2 := as.find_path(b, target, state)
+			path, ok2 := as.find_path(b, target)
 			// If we have no usable path, try greedy best-direction towards target -> just the shortest distance path
 			if !ok2 || len(path) <= 1 {
 				if dir, ok3 := as.BestDirectionTowards(b.Coords, target); ok3 {
