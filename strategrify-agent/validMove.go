@@ -49,3 +49,12 @@ func IsWallAt(as *AgentState, coords Coords) bool {
     }
     return false
 }
+
+// IsEnemyWallAt returns true if there is an ENEMY WALL entity at the given coords.
+// Only returns true for walls owned by other players (not our own walls).
+func IsEnemyWallAt(as *AgentState, coords Coords, playerID int) bool {
+    if hex, ok := as.Hexes[coords]; ok && hex.Entity != nil && hex.Entity.Type == WALL {
+        return hex.Entity.Player != playerID
+    }
+    return false
+}

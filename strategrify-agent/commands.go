@@ -17,6 +17,8 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 	// try to spawn new bees first
 	orders = append(orders, BuildHivesOrders(state, player, as)...)
 	orders = append(orders, BuildSpawnOrders(state, player, as)...)
+	// wall-building/rushing behaviour: have raiding bees move and build walls near enemy hives
+	orders = append(orders, BuildWallOrders(state, player, as)...)
 	// here spawn new hives --------------------------------///////////////////////////////////////////
 	//////////////////////////////////////// EMILIA
 
@@ -56,9 +58,9 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 				path, ok := as.find_path(b, nearest)
 				if !ok || len(path) <= 1 {
 					if dir, ok2 := as.BestDirectionTowards(b.Coords, nearest); ok2 {
-						// if there's a wall in that direction, attack it; otherwise move
+						// if there's an ENEMY wall in that direction, attack it; otherwise move
 						target := b.Coords.Neighbour(dir)
-						if IsWallAt(as, target) {
+						if IsEnemyWallAt(as, target, as.PlayerID) {
 							orders = append(orders, Order{Type: ATTACK, Coords: b.Coords, Direction: dir})
 							continue
 						}
@@ -129,9 +131,9 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 			// If we have no usable path, try greedy best-direction towards target -> just the shortest distance path
 			if !ok2 || len(path) <= 1 {
 				if dir, ok3 := as.BestDirectionTowards(b.Coords, target); ok3 {
-						// attack a wall if present, otherwise move
+						// attack an ENEMY wall if present, otherwise move
 						targetCoords := b.Coords.Neighbour(dir)
-						if IsWallAt(as, targetCoords){
+						if IsEnemyWallAt(as, targetCoords, as.PlayerID){
 							orders = append(orders, Order{Type: ATTACK, Coords: b.Coords, Direction: dir})
 							continue
 						}
@@ -142,9 +144,9 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 				}
 			} else {
 				if dir, ok := as.BestDirectionTowards(b.Coords, path[1]); ok {
-						// attack a wall if present, otherwise move
+						// attack an ENEMY wall if present, otherwise move
 						targetCoords := b.Coords.Neighbour(dir)
-						if IsWallAt(as, targetCoords) {
+						if IsEnemyWallAt(as, targetCoords, as.PlayerID) {
 							orders = append(orders, Order{Type: ATTACK, Coords: b.Coords, Direction: dir})
 						} else if _, okv := IsValidMoveTarget(as, b.Coords, dir); okv {
 							orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
@@ -169,7 +171,7 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 			}
 			if found {
 				target := b.Coords.Neighbour(chosen)
-				if IsWallAt(as, target) {
+				if IsEnemyWallAt(as, target, as.PlayerID) {
 					orders = append(orders, Order{Type: ATTACK, Coords: b.Coords, Direction: chosen})
 				} else {
 					orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: chosen})
@@ -177,7 +179,7 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 			} else {
 				d2 := dirs[rand.Intn(len(dirs))]
 				target := b.Coords.Neighbour(d2)
-				if IsWallAt(as, target) {
+				if IsEnemyWallAt(as, target, as.PlayerID) {
 					orders = append(orders, Order{Type: ATTACK, Coords: b.Coords, Direction: d2})
 				} else {
 					orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: d2})

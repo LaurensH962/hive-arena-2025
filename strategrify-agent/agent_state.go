@@ -30,7 +30,7 @@ type AgentState struct {
 	MyBees     []UnitInfo
 	EnemyBees  []UnitInfo
 	EnemyHives map[int][]Coords
-	// BeeRoles maps the current coords of each friendly bee to a role
+	// BeeRoles maps the current coords of each friendly bee to a rolegit 
 	BeeRoles map[Coords]BeeRole
 	// TrackedBees holds persistent tracked bee records so roles survive moves
 	TrackedBees map[string]*TrackedBee

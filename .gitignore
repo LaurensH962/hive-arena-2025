@@ -13,3 +13,5 @@
 .DS_Store
 arena_cli
 arena_server
+agent_bin
+agent_bin2
