@@ -176,13 +176,11 @@ func (as *AgentState) scout_goal(b UnitInfo) (Coords, bool) {
 						}
 					}
 				}
-
 				// If this unknown tile has NO explored neighbors, it's a real frontier to explore!
 				if exploredNeighbors == 0 {
 					return current.Hex_c, true
 				}
-				// Otherwise it's a border (has explored neighbors), skip it
-
+				// Otherwise it's a border (has explored neighbors), skip i
 				continue
 			}
 
