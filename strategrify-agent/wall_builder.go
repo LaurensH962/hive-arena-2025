@@ -130,7 +130,7 @@ func BuildWallOrders(state *GameState, player int, as *AgentState) []Order {
 				}
 
 				// pathfind defender to anchor
-				path, ok := as.find_path(*defenderBee, anchor)
+				path, ok := as.find_path(*defenderBee, anchor, state)
 				if !ok || len(path) == 0 {
 					continue
 				}
