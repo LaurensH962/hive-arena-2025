@@ -3,7 +3,7 @@
 # Configuration
 SERVER_URL="http://localhost:8000"
 SERVER_HOST="localhost:8000"
-MAP_NAME="difficult" # Change this to a map name from the maps/ folder (balanced, inverted, scarce, tiny)
+MAP_NAME="inverted" # Change this to a map name from the maps/ folder (balanced, inverted, scarce, tiny)
 PLAYERS=2
 
 # Bot configurations - you can specify different bots for each player

@@ -20,7 +20,7 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 
 	hives := as.Hives[player]
 	if len(hives) >= 3 {
-		return orders 
+		return orders
 	}
 
 	// Check each bee to see if you ares a princess that wants to become a queen
@@ -50,7 +50,7 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 			}
 		}
 		if nearestHiveDist <= 11 {
-			continue 
+			continue
 		}
 
 		// you are the new queen. ALL HAIL THE QUEEN!
@@ -63,7 +63,16 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 }
 
 func BuildSpawnOrders(state *GameState, player int, as *AgentState) []Order {
-	const maxBees = 7
+	// Calculate max bees based on map size
+	// Small maps (< 100 hexes): 5 bees, Medium (100-300): 7, Large (> 300): 10
+	mapSize := as.GetMapSize()
+	maxBees := 7
+	if mapSize < 100 {
+		maxBees = 5
+	} else if mapSize > 300 {
+		maxBees = 10
+	}
+
 	orders := []Order{}
 
 	// count current bees (authoritative from state)
@@ -90,7 +99,6 @@ func BuildSpawnOrders(state *GameState, player int, as *AgentState) []Order {
 	// }
 
 	spawnDirs := []Direction{E, NE, NW, W, SW, SE}
-
 
 	//spawn as long as we have resources
 	for _, hive := range hives {
