@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	. "hive-arena/common"
 )
 
@@ -43,7 +43,7 @@ func (as *AgentState) IsBee(c Coords, b UnitInfo) bool {
 func (as *AgentState) IsHive(c, goal Coords) bool {
 	for _, hs := range as.Hives {
 		for _, h := range hs {
-			if h == c && h != goal{
+			if h == c && h != goal {
 				return true
 			}
 		}
@@ -138,11 +138,9 @@ func (as *AgentState) find_path(b UnitInfo, goal Coords) ([]Coords, bool) {
 }
 
 func (as *AgentState) scout_goal(b UnitInfo) (Coords, bool) {
-
-	// Use BFS to find the nearest known tile that is adjacent to unexplored territory
-	// Use heat map to distinguish between map boundaries and unexplored areas:
-	// - Border = unknown tile WITH explored neighbors (dead end, don't scout)
-	// - Unexplored frontier = unknown tile with NO explored neighbors (real exploration target)
+	// Use BFS to find frontiers that are worth scouting.
+	// A frontier is an unknown tile with NO explored neighbors (heat > 0)
+	// Prefer frontiers that are >= FIELD_OF_VIEW away
 
 	start := b.Coords
 	visited := make(map[Coords]bool)
@@ -150,41 +148,47 @@ func (as *AgentState) scout_goal(b UnitInfo) (Coords, bool) {
 	queue := []*node{startNode}
 	visited[start] = true
 
-	// Increment heat for current position
+	// Mark scout visit in heat map
 	as.ScoutHeatMap[start]++
 
-	// Now do full BFS search
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
 
-		// Check all neighbors of the current known tile
 		for dir := range DirectionToOffset {
 			next := current.Hex_c.Neighbour(dir)
 
-			// If neighbor is not in map (unknown/unexplored)
+			// If neighbor is unknown (not in agent map)
 			_, isKnown := as.Map[next]
 			if !isKnown {
-				// Check if this unknown tile is a border or unexplored frontier
+				// Count how many of its neighbors are explored (have heat>0 and exist in map)
 				exploredNeighbors := 0
+				if as.ScoutHeatMap[next] == -1 {
+					continue
+				}
 				for checkDir := range DirectionToOffset {
 					checkTile := next.Neighbour(checkDir)
 					if _, exists := as.Map[checkTile]; exists {
-						// Check if this neighbor has been visited (heat > 0)
 						if as.ScoutHeatMap[checkTile] > 0 {
 							exploredNeighbors++
 						}
 					}
 				}
-				// If this unknown tile has NO explored neighbors, it's a real frontier to explore!
+
 				if exploredNeighbors == 0 {
-					return current.Hex_c, true
+					// This is a true frontier (no explored neighbors)
+					d := start.Distance(next)
+					if d >= FIELD_OF_VIEW {
+						return current.Hex_c, true
+					}
+				} else {
+					// This is a border (has explored neighbors)
+					as.ScoutHeatMap[current.Hex_c] = -1
+					visited[current.Hex_c] = true
+					continue
 				}
-				// Otherwise it's a border (has explored neighbors), skip i
-				continue
 			}
 
-			// If neighbor is known and not visited, add to queue to explore further
 			if !visited[next] {
 				visited[next] = true
 				newNode := &node{Hex_c: next, Prev: current}
@@ -192,7 +196,6 @@ func (as *AgentState) scout_goal(b UnitInfo) (Coords, bool) {
 			}
 		}
 	}
-
 	return start, false
 }
 
@@ -247,7 +250,7 @@ func find_scout(as *AgentState) []Order {
 		}
 	}
 
-	// If no SCOUT exists, assign one from available non-carrying bees
+	/*// If no SCOUT exists, assign one from available non-carrying bees
 	if scoutID == "" {
 		for i, b := range as.MyBees {
 			if !b.HasFlower {
@@ -266,7 +269,7 @@ func find_scout(as *AgentState) []Order {
 				break
 			}
 		}
-	}
+	}*/
 
 	// If we still don't have a scout, return (all bees are carrying flowers)
 	if scoutBee == nil || scoutID == "" {
