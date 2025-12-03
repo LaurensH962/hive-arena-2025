@@ -301,6 +301,11 @@ func (as *AgentState) GetBeeRole(c Coords) BeeRole {
 	return RoleHarvester
 }
 
+// GetMapSize returns an estimate of the map size (number of hexes).
+func (as *AgentState) GetMapSize() int {
+	return len(as.Hexes)
+}
+
 // IsFlower returns true when the coordinates contain a flower (field with resources).
 func (as *AgentState) IsFlower(c Coords) bool {
 	_, ok := as.Flowers[c]
