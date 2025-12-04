@@ -317,6 +317,26 @@ func (as *AgentState) IsFlower(c Coords) bool {
 	return ok
 }
 
+func (as *AgentState) flowerHasHive(c Coords) bool {
+	// check our hives
+	for _, hs := range as.Hives {      // hs = []Coords
+		for _, h := range hs {         // h = Coords
+			if h == c {
+				return true
+			}
+		}
+	}
+	// check enemy hives
+	for _, hs := range as.EnemyHives {
+		for _, h := range hs {
+			if h == c {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // GetNearestFlower returns the coord and whether it found one.
 func (as *AgentState) GetNearestFlower(from Coords) (Coords, bool) {
 	var best Coords
@@ -326,7 +346,10 @@ func (as *AgentState) GetNearestFlower(from Coords) (Coords, bool) {
 		d := from.Distance(c)
 		if !found || d < bestDist {
 			hex, ok := as.Hexes[c]
-			if !ok || hex.Entity != nil {
+			if as.flowerHasHive(c) {
+				continue // skip flower occupied by a hive
+			}
+			if !ok || hex.Entity != nil{
 				continue
 			}
 			bestDist = d
@@ -334,6 +357,7 @@ func (as *AgentState) GetNearestFlower(from Coords) (Coords, bool) {
 			found = true
 		}
 	}
+	
 	return best, found
 }
 
