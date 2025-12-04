@@ -54,8 +54,11 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 		}
 
 		// you are the new queen. ALL HAIL THE QUEEN!
-		orders = append(orders, Order{Type: BUILD_HIVE, Coords: bee.Coords})
-		resources -= 12
+		role := as.GetBeeRole(bee.Coords)
+		if role != RoleDefender {
+			orders = append(orders, Order{Type: BUILD_HIVE, Coords: bee.Coords})
+			resources -= 12
+		}
 		break
 	}
 
