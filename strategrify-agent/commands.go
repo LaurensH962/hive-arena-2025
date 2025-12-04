@@ -98,7 +98,6 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 				}
 			}
 			
-			fmt.Printf("\n\n\n-------HELP, CANNOT FIND PATH HOME-----\n\n\n")
 			maxTries := 10
 			var chosen Direction
 			found := false

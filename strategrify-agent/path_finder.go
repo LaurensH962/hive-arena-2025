@@ -180,18 +180,32 @@ func (as *AgentState) scout_goal(b UnitInfo) (Coords, bool) {
 					}
 				}
 				// If this unknown tile has NO explored neighbors, it's a real frontier to explore!
+				// if exploredNeighbors == 0 {
+				// 	return current.Hex_c, true
+				// }
 				if exploredNeighbors == 0 {
-					return current.Hex_c, true
+					hex := as.Hexes[current.Hex_c]
+					if hex.Terrain.IsWalkable() {
+						return current.Hex_c, true
+					}
 				}
 				// Otherwise it's a border (has explored neighbors), skip i
 				continue
 			}
 
 			// If neighbor is known and not visited, add to queue to explore further
-			if !visited[next] {
-				visited[next] = true
-				newNode := &node{Hex_c: next, Prev: current}
-				queue = append(queue, newNode)
+			// if !visited[next] {
+			// 	visited[next] = true
+			// 	newNode := &node{Hex_c: next, Prev: current}
+			// 	queue = append(queue, newNode)
+			// }
+			if isKnown {
+				hex := as.Hexes[next]
+				if hex.Terrain.IsWalkable() && !visited[next] {
+					visited[next] = true
+					newNode := &node{Hex_c: next, Prev: current}
+					queue = append(queue, newNode)
+				}
 			}
 		}
 	}
