@@ -32,13 +32,13 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 		flowerCount := 0
 		flowerResources := 0
 		for flowerCoord, resources := range as.Flowers {
-			if bee.Coords.Distance(flowerCoord) <= 4 {
+			if bee.Coords.Distance(flowerCoord) <= 3 {
 				flowerCount++
 				flowerResources += int(resources)
 			}
 		}
 
-		if flowerCount < 4 || flowerResources < 24 {
+		if flowerCount < 4 || flowerResources < 25 {
 			continue
 		}
 

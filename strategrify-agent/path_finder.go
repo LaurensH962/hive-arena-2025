@@ -120,7 +120,10 @@ func (as *AgentState) find_path(b UnitInfo, goal Coords) ([]Coords, bool) {
 			if !ok {
 				continue
 			}
-			if terrain == ROCK || as.IsWall(next) == true || as.IsBee(next, b) == true || as.IsHive(next, goal) == true {
+			// if terrain == ROCK || as.IsWall(next) == true || as.IsBee(next, b) == true || as.IsHive(next, goal) == true {
+			// 	continue
+			// }
+			if terrain == ROCK || as.IsBee(next, b) == true || as.IsHive(next, goal) == true {
 				continue
 			}
 			newDist := current.D + 1
