@@ -18,8 +18,13 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 		return orders // not enough resources
 	}
 
+	mapSize := as.GetMapSize()
+	maxHives := 2
+	if mapSize > 300 {
+		maxHives = 3
+	}
 	hives := as.Hives[player]
-	if len(hives) >= 3 {
+	if len(hives) >= maxHives {
 		return orders
 	}
 
@@ -71,7 +76,7 @@ func BuildSpawnOrders(state *GameState, player int, as *AgentState) []Order {
 	mapSize := as.GetMapSize()
 	maxBees := 7
 	if mapSize < 100 {
-		maxBees = 5
+		maxBees = 4
 	} else if mapSize > 300 {
 		maxBees = 10
 	}

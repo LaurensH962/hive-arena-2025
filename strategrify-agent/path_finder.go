@@ -251,7 +251,7 @@ func find_scout(as *AgentState) []Order {
 	}
 
 	// If no SCOUT exists, assign one from available non-carrying bees
-	if scoutID == "" {
+	if scoutID == "" && as.Turn < 100 {
 		for i, b := range as.MyBees {
 			if !b.HasFlower {
 				// Create a new tracked bee with SCOUT role
@@ -271,6 +271,18 @@ func find_scout(as *AgentState) []Order {
 		}
 	}
 
+	if scoutBee != nil && as.Turn > 100 {
+		role := as.GetBeeRole(scoutBee.Coords)
+		if role == RoleScout {
+		// Promote the tracked scout to harvester — don't try to write into UnitInfo
+			if scoutID != "" {
+				if tb, ok := as.TrackedBees[scoutID]; ok {
+					tb.Role = RoleHarvester
+				}
+			}
+		return order
+	}
+}
 	// If we still don't have a scout, return (all bees are carrying flowers)
 	if scoutBee == nil || scoutID == "" {
 		return order
