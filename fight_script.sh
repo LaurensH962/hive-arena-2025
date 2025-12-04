@@ -4,7 +4,7 @@
 SERVER_URL="http://localhost:8000"
 SERVER_HOST="localhost:8000"
 MAP_NAME="balanced" # Change this to a map name from the maps/ folder (balanced, inverted, scarce, tiny)
-PLAYERS=4
+PLAYERS=3
 
 # Bot configurations - you can specify different bots for each player
 # Bot 1 configuration
