@@ -120,7 +120,10 @@ func (as *AgentState) find_path(b UnitInfo, goal Coords) ([]Coords, bool) {
 			if !ok {
 				continue
 			}
-			if terrain == ROCK || as.IsWall(next) == true || as.IsBee(next, b) == true || as.IsHive(next, goal) == true {
+			// if terrain == ROCK || as.IsWall(next) == true || as.IsBee(next, b) == true || as.IsHive(next, goal) == true {
+			// 	continue
+			// }
+			if terrain == ROCK || as.IsBee(next, b) == true || as.IsHive(next, goal) == true {
 				continue
 			}
 			newDist := current.D + 1
@@ -174,25 +177,34 @@ func (as *AgentState) scout_goal(b UnitInfo) (Coords, bool) {
 						}
 					}
 				}
-
+				// If this unknown tile has NO explored neighbors, it's a real frontier to explore!
+				// if exploredNeighbors == 0 {
+				// 	return current.Hex_c, true
+				// }
 				if exploredNeighbors == 0 {
-					// This is a true frontier (no explored neighbors)
-					d := start.Distance(next)
-					if d >= FIELD_OF_VIEW {
+					dist := start.Distance(current.Hex_c)
+					hex := as.Hexes[current.Hex_c]
+					if hex.Terrain.IsWalkable() && dist >= FIELD_OF_VIEW{
 						return current.Hex_c, true
 					}
-				} else {
-					// This is a border (has explored neighbors)
-					as.ScoutHeatMap[current.Hex_c] = -1
-					visited[current.Hex_c] = true
-					continue
 				}
+				// Otherwise it's a border (has explored neighbors), skip i
+				continue
 			}
 
-			if !visited[next] {
-				visited[next] = true
-				newNode := &node{Hex_c: next, Prev: current}
-				queue = append(queue, newNode)
+			// If neighbor is known and not visited, add to queue to explore further
+			// if !visited[next] {
+			// 	visited[next] = true
+			// 	newNode := &node{Hex_c: next, Prev: current}
+			// 	queue = append(queue, newNode)
+			// }
+			if isKnown {
+				hex := as.Hexes[next]
+				if hex.Terrain.IsWalkable() && !visited[next] {
+					visited[next] = true
+					newNode := &node{Hex_c: next, Prev: current}
+					queue = append(queue, newNode)
+				}
 			}
 		}
 	}
@@ -249,9 +261,10 @@ func find_scout(as *AgentState) []Order {
 			foundTrackedScout = nil
 		}
 	}
+	
 
 	/*// If no SCOUT exists, assign one from available non-carrying bees
-	if scoutID == "" {
+	if scoutID == "" && as.Turn < 100 {
 		for i, b := range as.MyBees {
 			if !b.HasFlower {
 				// Create a new tracked bee with SCOUT role
@@ -270,6 +283,19 @@ func find_scout(as *AgentState) []Order {
 			}
 		}
 	}*/
+
+	if scoutBee != nil && as.Turn > 100 || scoutBee != nil && len(as.MyBees) <= 2 && len(as.Flowers) >= 1{
+		role := as.GetBeeRole(scoutBee.Coords)
+		if role == RoleScout {
+			// Promote the tracked scout to harvester — don't try to write into UnitInfo
+			if scoutID != "" {
+				if tb, ok := as.TrackedBees[scoutID]; ok {
+					tb.Role = RoleHarvester
+				}
+			}
+			return order
+		}
+	}
 
 	// If we still don't have a scout, return (all bees are carrying flowers)
 	if scoutBee == nil || scoutID == "" {

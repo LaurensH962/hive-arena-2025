@@ -9,7 +9,7 @@ import (
 	. "hive-arena/common"
 )
 
-var dirs = []Direction{E, NE, SW, W, NW, NE}
+var dirs = []Direction{E, SE, SW, W, NW, NE}
 
 
 func commands(state *GameState, player int, as *AgentState) []Order {
@@ -87,12 +87,17 @@ func commands(state *GameState, player int, as *AgentState) []Order {
 					}
 				} else {
 					if dir, ok4 := as.BestDirectionTowards(b.Coords, path[1]); ok4 {
-						orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
+						target := b.Coords.Neighbour(dir)
+						if IsWallAt(as, target) {
+							orders = append(orders, Order{Type: ATTACK, Coords: b.Coords, Direction: dir})
+						} else {
+							orders = append(orders, Order{Type: MOVE, Coords: b.Coords, Direction: dir})
+						}
 					}
 					continue
 				}
 			}
-
+			
 			maxTries := 10
 			var chosen Direction
 			found := false

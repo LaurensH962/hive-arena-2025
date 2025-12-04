@@ -18,8 +18,13 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 		return orders // not enough resources
 	}
 
+	mapSize := as.GetMapSize()
+	maxHives := 2
+	if mapSize > 300 {
+		maxHives = 3
+	}
 	hives := as.Hives[player]
-	if len(hives) >= 3 {
+	if len(hives) >= maxHives {
 		return orders
 	}
 
@@ -32,13 +37,13 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 		flowerCount := 0
 		flowerResources := 0
 		for flowerCoord, resources := range as.Flowers {
-			if bee.Coords.Distance(flowerCoord) <= 4 {
+			if bee.Coords.Distance(flowerCoord) <= 3 {
 				flowerCount++
 				flowerResources += int(resources)
 			}
 		}
 
-		if flowerCount < 4 || flowerResources < 24 {
+		if flowerCount < 4 || flowerResources < 25 {
 			continue
 		}
 
@@ -54,8 +59,11 @@ func BuildHivesOrders(state *GameState, player int, as *AgentState) []Order {
 		}
 
 		// you are the new queen. ALL HAIL THE QUEEN!
-		orders = append(orders, Order{Type: BUILD_HIVE, Coords: bee.Coords})
-		resources -= 12
+		role := as.GetBeeRole(bee.Coords)
+		if role != RoleDefender {
+			orders = append(orders, Order{Type: BUILD_HIVE, Coords: bee.Coords})
+			resources -= 12
+		}
 		break
 	}
 
@@ -68,7 +76,7 @@ func BuildSpawnOrders(state *GameState, player int, as *AgentState) []Order {
 	mapSize := as.GetMapSize()
 	maxBees := 7
 	if mapSize < 100 {
-		maxBees = 5
+		maxBees = 4
 	} else if mapSize > 300 {
 		maxBees = 10
 	}
