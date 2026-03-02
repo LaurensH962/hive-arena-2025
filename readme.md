@@ -1,6 +1,9 @@
-# Hive Arena 2025
+# Hive Arena – AI Agent
+The challenge
+Hive Arena was a two-week team competition organized by Hive Helsinki, where students designed an algorithmic agent for a turn-based resource-gathering game. The project was implemented in Go, a language none of our team members had previously used. Teams competed by letting their agents play against each other, with no control from us once the game started.
 
-A friendly AI competition for the Hive students!
+The game
+The game mechanics are simple. On their turn the bees could move, gather flowers, attack, build walls or hives, spawn new bees, or do nothing. Flowers acted both as a resource for action and as a win condition. Each bee’s action order was randomized, and visibility was limited to a three tile radius, meaning the map had to be explored under fog-of-war conditions. All bees shared a hive mind so once something was discovered, it was known to all bees.
 
 ![Screenshot](docs/arena-viewer.png)
 
